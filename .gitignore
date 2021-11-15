@@ -102,3 +102,9 @@ dist
 
 # TernJS port file
 .tern-port
+
+#VSCOde
+.vscode
+
+.eslintrc.js
+.idea

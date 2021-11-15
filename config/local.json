@@ -1,0 +1,48 @@
+{
+    "sequelizeSettings": {
+      "local": {
+        "username": "root",
+        "password": "temp123$",
+        "database": "reflector",
+        "host": "localhost",
+        "logging": true,
+        "dialect": "mysql",
+        "define": {
+          "freezeTableName": true
+        }
+      },
+      "test": {
+        "username": "root",
+        "password": "temp123$",
+        "database": "reflector-test",
+        "host": "localhost",
+        "dialect": "mysql",
+        "dialectOptions": {"decimalNumbers": true},
+        "logging": false,
+        "define": {
+          "freezeTableName": true
+        }
+      }
+    },
+    "JWT": {
+      "KEY": "f98dsfjkjfidskjnafd8aufij43kn45f4d654af8a5f448345438545w1",
+      "KEY_REFRESH": "jfdusyijfdisajfkewjufioejdkshafuiodjafkldsjhfiodjafkldsajhfdakjnfu498i548fj",
+      "KEY_TEMPORARY": "kjfdlsjudjaaijgdajaj4398t9kgmrljvfosdamgfrwmgfljvhdposafgndsagmnflkanfdskj",
+      "KEY_EXPIRE": "20s",
+      "KEY_TEMPORARY_EXPIRE": "20s",
+      "KEY_REFRESH_EXPIRE": "5d",
+      "COOKIE": false
+    },
+    "corsOrigin": {
+      "whitelist": [
+        "http://localhost",
+        "http://localhost:4000",
+        "http://localhost:8100"
+      ],
+      "whiteListEndPoints": [
+      ]
+    },
+    "TEST": true,
+    "PORT": 4000
+  }
+  
