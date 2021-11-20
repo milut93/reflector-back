@@ -137,16 +137,3 @@ export function PaginatedResponse<T> (classT: ClassType<T>) {
 
     return PaginatedResponseClass
 }
-
-export type TSumFinance<T> = T & Record<'finance', number>
-
-export type TForeignKeys = {
-    advanceInvoiceId?: number
-    financeTransferDocumentId?: number
-    invoiceId?: number
-    returnInvoiceId?: number
-    proformaInvoiceId?: number
-    calculationId?: number
-    productionOrderId?: number
-}
-

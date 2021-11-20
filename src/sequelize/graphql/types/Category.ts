@@ -14,3 +14,21 @@ export class CategoryType {
     description: string
 
 }
+
+
+
+@InputType({isAbstract: true})
+export class ArticlesType {
+
+    @Field({nullable: true})
+    header: string
+
+    @Field({nullable: true})
+    content: string
+
+    @Field(type => Int, {nullable: true})
+    categoryId: number
+
+    @Field(type => Int, {nullable: true})
+    userId: number
+}
