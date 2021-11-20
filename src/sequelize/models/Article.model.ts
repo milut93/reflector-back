@@ -39,6 +39,7 @@ import { ArticlesType } from '../graphql/types/Category'
 import { checkJWT } from '../graphql/middlewares'
 import Category from './Category.model'
 import User from './User.model'
+import ArticleImgVideo, { ArticlesVideo } from './ArticleImgVideo.model'
 
 @ObjectType()
 @Table({
@@ -118,6 +119,12 @@ export default class Article extends Model {
     @Field(type => Category)
     @BelongsTo(() => Category)
     category: Category
+    
+
+    @Field(type => [ArticleImgVideo], {nullable: true})
+    @HasMany(() => ArticleImgVideo)
+    articleImgVideo: ArticleImgVideo[]
+
 
     public static async selectOne(id: number, ctx?: IContextApp): TModelResponse<Article> {
         return Article.findOne({
@@ -134,6 +141,11 @@ export default class Article extends Model {
                     model: User,
                     as: 'user',
                     required: true
+                },
+                {
+                    model: ArticleImgVideo,
+                    as: 'articleImgVideo',
+                    required: false
                 }
             ]
         })
