@@ -33,25 +33,6 @@ import _ from 'lodash'
 import { FindOptions } from 'sequelize'
 import { checkJWT } from '../middlewares'
 
-// const sendEmailRegistration = async (user: User, tokenString: string, subject: string, action: string) => {
-//     const settings = await Settings.selectOneByKey(SETTINGS.KEY_APPLICATION_CONFIRM_EMAIL)
-//     const text = await Settings.selectOneByKey(SETTINGS.KEY_APPLICATION_CONFIRM_EMAIL_TEXT)
-//     if (settings && text) {
-//         let data = text.value
-//         //const domain = CONFIGURATION.DOMAIN
-//         const token = jsonwebtoken.sign({
-//             userId: user.id,
-//             email: user.email,
-//             userName: user.userName
-//         },
-//             tokenString,
-//             {expiresIn: '30m'})
-//         const ref = CONFIGURATION.JWT.COOKIE ? `${CONFIGURATION.DOMAIN}#/application/auth/${action}?key=${user.id},${token}` : `${CONFIGURATION.DOMAIN_IONIC}/${action}?key=${user.id},${token}`
-//         data = data.replace(/href=LINK_TO_REPLACE/, `href="${ref}"`)
-//         await Email.insertOne(user.email, subject, data)
-//     }
-//}
-
 
 
 @Resolver()
@@ -79,7 +60,7 @@ export default class AuthResolver {
         const user = data.accountCode ? await User.findOne({
             where: {
                 userName: data.userName
-            },
+            }
         }) : await User.findOne({
             where: {
                 email: data.userName
@@ -89,13 +70,12 @@ export default class AuthResolver {
         !user && throwArgumentValidationError('userName', {}, { message: 'User name or password  not match' })
         const valid = await bcrypt.compare(data.password, user.password)
         !valid && throwArgumentValidationError('password', {}, { message: 'User name or password not match' })
+        createRefreshTokenCookie(user, ctx.res)
         return {
             token: createAccessToken(user),
-            refresh: createRefreshToken(user, ctx.res),
             user
         }
     }
-
 
     @Mutation(returns => String, { name: 'authRegistration' })
     async authRegistration(@Ctx() ctx: IContextApp,
@@ -121,10 +101,6 @@ export default class AuthResolver {
             throw new Error('User account exists, check email to confirm !')
         }
 
-        if (data.accountCode) {
-            data.accountCode = data.accountCode.trim()
-        }
-
         const transaction = await User.sequelize.transaction()
         if (!transaction) {
             throw Error('Transaction can\'t be open')
@@ -147,7 +123,6 @@ export default class AuthResolver {
             transaction.rollback()
             throw (e)
         }
-        //await sendEmailRegistration(user, token, 'Verification', 'confirm-registration')
         return 'OK'
     }
 
@@ -218,12 +193,12 @@ export default class AuthResolver {
         await user.update({
             token
         })
-        //await sendEmailRegistration(user, token, 'Change Password', 'change-password')
+
         return 'OK'
     }
 
     /*
-  /!** Returns current logged account *!/
+/!** Returns current logged account *!/
 
     @UseMiddleware(checkJWT)
     @Query(returns => Account, {name: 'authLogged'})
@@ -233,54 +208,26 @@ export default class AuthResolver {
 
 }
 
-export const createAccessToken = (user: User) => jsonwebtoken.sign({ userId: user.id },
-    configuration.JWT.KEY,
-    { expiresIn: configuration.JWT.KEY_EXPIRE })
 
-const getTime = (time: string) => {
-    let number = 0
-    let str = ''
-    if (/s/g.test(time)) {
-        str = time.replace(/s/g, '')
-        number = _.multiply(Number(str), 1000)
-    }
-    if (/m/g.test(time)) {
-        str = time.replace(/m/g, '')
-        number = _.multiply(Number(str), _.multiply(60, 1000))
-    }
-    if (/d/g.test(time)) {
-        str = time.replace(/d/g, '')
-        number = _.multiply(Number(str), 24 * 60 * 1000)
-    }
-    return Number(number)
+export const createAccessToken = (user: User) => {
+
+    return jsonwebtoken.sign({ userId: user.id },
+        configuration.JWT.KEY,
+        { expiresIn: configuration.JWT.KEY_EXPIRE })
+
 }
 
-/*
 export const createRefreshTokenCookie = (user: User, resp: any) => {
-    const token = jsonwebtoken.sign({ userId: user.id },
-    configuration.JWT.KEY_REFRESH,
-    { expiresIn: configuration.JWT.KEY_REFRESH_EXPIRE })
-    resp.cookie('refresh-token', token, {
-       // domain: '192.168.1.26:4000',
-       // sameSite: 'none',
-        httpOnly: true,
-        // maxAge: 90000,
-        expire: getTime(configuration.JWT.KEY_EXPIRE),
-        path: '/refresh_token'
-    })
-}
-*/
 
-export const createRefreshToken = (user: User, resp: any) => {
     const token = jsonwebtoken.sign({ userId: user.id },
         configuration.JWT.KEY_REFRESH,
         { expiresIn: configuration.JWT.KEY_REFRESH_EXPIRE })
-    resp.cookie('refresh-token', token, {
-        httpOnly: true,
-        expire: getTime(configuration.JWT.KEY_EXPIRE),
-        path: '/refresh_token'
-    })
-    return token
+        resp.cookie('refresh-token', token, {
+            httpOnly: true,
+            path: '/refresh_token'
+        })
+        console.log(token,resp.cookie)
+
 }
 
 export const verifyRefreshToken = (token: string) => {

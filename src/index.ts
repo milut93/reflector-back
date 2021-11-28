@@ -4,10 +4,11 @@ import bodyParser             from 'body-parser'
 import cors                   from 'cors'
 import fileUpload             from 'express-fileupload'
 import configuration          from '../config/index'
+import cookieParser             from 'cookie-parser'
 import path from 'path'
 import {
     createAccessToken,
-    createRefreshToken,
+    createRefreshTokenCookie,
     verifyRefreshToken
 }                             from 'sequelize/graphql/resolvers/Auth'
 import { User } from 'sequelize/models'
@@ -20,20 +21,23 @@ app.use(bodyParser.json({limit: '50mb'}))
 app.use(fileUpload({
     limits: {fileSize: 50 * 1024 * 1024},
 }))
+app.use(cookieParser())
 
 const corsOptions = {
     credentials: true,
     origin: function(origin, callback) {
-        if (configuration.corsOrigin.whitelist.indexOf(origin) !== -1 || !origin || origin.startsWith('http://192.168.')) {
-            callback(null, true)
-        } else {
-            callback(new Error('Not allowed by CORS'))
-        }
+        callback(null, true)
+        // if (configuration.corsOrigin.whitelist.indexOf(origin) !== -1 || !origin || origin.startsWith('http://192.168.')) {
+        //     callback(null, true)
+        // } else {
+        //     callback(new Error('Not allowed by CORS'))
+        // }
     }
 }
 
 
 app.use(cors(corsOptions))
+
 
 const dir = path.join(__dirname, '../images')
 
@@ -65,22 +69,11 @@ app.post('/upload_image/', async (req, resp) => {
     // }
     // return resp.status(200).send({ok: true})
 })
-
 app.get('/refresh_token', async (req, resp) => {
-    let token = null
-    const authorization = req.headers['authorization']
-    if (authorization) {
-        token = authorization.replace(/Bearer\s+/, '').trim()
-    }
-
-    if (!token) {
-        const token = req.cookies['refresh-token']
-    }
-
+    const token = req.cookies['refresh-token']
     if (!token) {
         return resp.send({ok: false})
     }
-
     let payload: any = null
     try {
         payload = verifyRefreshToken(token)
@@ -91,8 +84,9 @@ app.get('/refresh_token', async (req, resp) => {
     if (!user) {
         throw new Error('User not found in system')
     }
-    const refresh = createRefreshToken(user, resp)
-    return resp.send({ok: true, data_token: {token: createAccessToken(user), refresh}})
+    console.log(user)
+    createRefreshTokenCookie(user, resp)
+    return resp.send({ok: true, token: createAccessToken(user)})
 });
 
 (async () => {
@@ -106,5 +100,4 @@ app.get('/refresh_token', async (req, resp) => {
 
 
     await createTestData()
-
 })()

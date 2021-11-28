@@ -1,13 +1,13 @@
 import 'reflect-metadata'
-import { createSchemaGraphQL } from './sequelize/sequelize'
-import { ApolloServer }        from 'apollo-server-express'
+import {createSchemaGraphQL} from './sequelize/sequelize'
+import {ApolloServer}        from 'apollo-server-express'
 
 import configuration from '../config'
 
 let server = void(0)
 
 const context = (data) => {
-    const { req, res } = data
+    const {req, res} = data
     const token = (() => {
         if (configuration.TEST) {
             return {
@@ -22,12 +22,12 @@ const context = (data) => {
         const data = authorization.split(' ')
         return data.length > 1 ? data[1] : ''
     })()
- //   const refreshTokenCookie = configuration.JWT.COOKIE && req.cookies ? req.cookies['refresh-token'] : void(0)
+    const refreshTokenCookie = req.cookies ? req.cookies['refresh-token'] : void(0)
     const CONTEXT = {
         req: req,
         res: res,
         accessToken: token,
-      //  refreshToken: refreshTokenCookie
+        refreshToken: refreshTokenCookie
     }
     return CONTEXT
 }

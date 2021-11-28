@@ -28,7 +28,7 @@
       "KEY": "f98dsfjkjfidskjnafd8aufij43kn45f4d654af8a5f448345438545w1",
       "KEY_REFRESH": "jfdusyijfdisajfkewjufioejdkshafuiodjafkldsjhfiodjafkldsajhfdakjnfu498i548fj",
       "KEY_TEMPORARY": "kjfdlsjudjaaijgdajaj4398t9kgmrljvfosdamgfrwmgfljvhdposafgndsagmnflkanfdskj",
-      "KEY_EXPIRE": "20s",
+      "KEY_EXPIRE": "5s",
       "KEY_TEMPORARY_EXPIRE": "20s",
       "KEY_REFRESH_EXPIRE": "5d",
       "COOKIE": false
@@ -37,7 +37,7 @@
       "whitelist": [
         "http://localhost",
         "http://localhost:4000",
-        "http://localhost:8100"
+        "http://localhost:3000"
       ],
       "whiteListEndPoints": [
       ]
