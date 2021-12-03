@@ -12,16 +12,20 @@ export const createTestData = async () => {
     let user = await User.findByPk(1)
     if (configuration.TEST && !user) {
         user = await User.create({
-            email: 'stefan.milutinovic.rs@gmail.com',
             userName: 'stefan',
-            password: await bcrypt.hash('test123!', 12)
+            nickname: 'stefan',
+            description: 'Stefan Milutinovic',
+            password: await bcrypt.hash('test123!', 12),
+            role: 1,
         })
 
-        // user = await User.create({
-        //     email: 'acasax@gmail.com',
-        //     userName: 'acasax',
-        //     password: await bcrypt.hash('test123!', 12)
-        // })
+         user = await User.create({
+            userName: 'acasax',
+            nickname:  'acasax',
+            description: 'Aleksandar Djordjevic',
+            password: await bcrypt.hash('test123!', 12),
+            role: 1,  
+         })
     }
 
 

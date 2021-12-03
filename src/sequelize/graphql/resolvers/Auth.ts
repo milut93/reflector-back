@@ -26,8 +26,6 @@ import {
     CONSTANT_MODEL,
     SETTINGS
 } from '../../constants'
-//import Settings      from '../../models/Settings.model'
-//import Email         from '../../models/Email.model'
 import CONFIGURATION from '../../../../config/index'
 import _ from 'lodash'
 import { FindOptions } from 'sequelize'
@@ -57,15 +55,11 @@ export default class AuthResolver {
     async authLogin(@Arg('data') data: AuthUserLogin,
         @Ctx() ctx: IContextApp) {
         /**   First thy to find user by user name, we can check before this is userName valid email  */
-        const user = data.accountCode ? await User.findOne({
+        const user = await User.findOne({
             where: {
                 userName: data.userName
             }
-        }) : await User.findOne({
-            where: {
-                email: data.userName
-            }
-        })
+        }) 
 
         !user && throwArgumentValidationError('userName', {}, { message: 'User name or password  not match' })
         const valid = await bcrypt.compare(data.password, user.password)
@@ -77,125 +71,125 @@ export default class AuthResolver {
         }
     }
 
-    @Mutation(returns => String, { name: 'authRegistration' })
-    async authRegistration(@Ctx() ctx: IContextApp,
-        @Arg('data') data: AuthUserRegister) {
+    // @Mutation(returns => String, { name: 'authRegistration' })
+    // async authRegistration(@Ctx() ctx: IContextApp,
+    //     @Arg('data') data: AuthUserRegister) {
 
-        const user = await User.findOne({
-            where: {
-                email: data.email,
-            }
-        })
-        if (user) {
-            if (data.userName !== data.userName) {
-                throwArgumentValidationError('userName', data, { message: 'User Name  already exists' })
-            }
-            if (user.status !== 0) {
-                throw new Error('User account is already active !')
-            }
-            const token = AuthResolver.createTempToken()
-            await user.update({
-                token
-            })
-            // sendEmailRegistration(user, token, 'Verification', 'confirm-registration')
-            throw new Error('User account exists, check email to confirm !')
-        }
+    //     const user = await User.findOne({
+    //         where: {
+    //             email: data.email,
+    //         }
+    //     })
+    //     if (user) {
+    //         if (data.userName !== data.userName) {
+    //             throwArgumentValidationError('userName', data, { message: 'User Name  already exists' })
+    //         }
+    //         if (user.status !== 0) {
+    //             throw new Error('User account is already active !')
+    //         }
+    //         const token = AuthResolver.createTempToken()
+    //         await user.update({
+    //             token
+    //         })
+    //         // sendEmailRegistration(user, token, 'Verification', 'confirm-registration')
+    //         throw new Error('User account exists, check email to confirm !')
+    //     }
 
-        const transaction = await User.sequelize.transaction()
-        if (!transaction) {
-            throw Error('Transaction can\'t be open')
-        }
-        const options = { transaction, validate: true }
-        const token = AuthResolver.createTempToken()
+    //     const transaction = await User.sequelize.transaction()
+    //     if (!transaction) {
+    //         throw Error('Transaction can\'t be open')
+    //     }
+    //     const options = { transaction, validate: true }
+    //     const token = AuthResolver.createTempToken()
 
-        try {
+    //     try {
 
-            const hash = await bcrypt.hash(data.password, 12)
-            await User.create({
-                password: hash,
-                userName: data.userName,
-                email: data.email,
-                token: token,
-                status: CONSTANT_MODEL.USER_STATUS.REQUESTED
-            }, options)
-            transaction.commit()
-        } catch (e) {
-            transaction.rollback()
-            throw (e)
-        }
-        return 'OK'
-    }
+    //         const hash = await bcrypt.hash(data.password, 12)
+    //         await User.create({
+    //             password: hash,
+    //             userName: data.userName,
+    //             email: data.email,
+    //             token: token,
+    //             status: CONSTANT_MODEL.USER_STATUS.REQUESTED
+    //         }, options)
+    //         transaction.commit()
+    //     } catch (e) {
+    //         transaction.rollback()
+    //         throw (e)
+    //     }
+    //     return 'OK'
+    // }
 
-    @Mutation(returns => String, { name: 'authConfirmation' })
-    async confirmation(@Arg('key', type => String) key: string,) {
+    // @Mutation(returns => String, { name: 'authConfirmation' })
+    // async confirmation(@Arg('key', type => String) key: string,) {
 
-        const data = /(.*),(.*)/.exec(key)
-        if (!data || !Array.isArray(data) || data.length < 2) {
-            throw Error('Data are not valid')
-        }
-        const user = await User.findByPk(data[1])
-        if (!user || user.status !== CONSTANT_MODEL.USER_STATUS.REQUESTED) {
-            throw Error('Account not found')
-        }
-        const dataToken = jsonwebtoken.verify(data[2], user.token)
-        if (dataToken.userId !== user.id || dataToken.email !== user.email) {
-            throw ('Data not valid')
-        }
+    //     const data = /(.*),(.*)/.exec(key)
+    //     if (!data || !Array.isArray(data) || data.length < 2) {
+    //         throw Error('Data are not valid')
+    //     }
+    //     const user = await User.findByPk(data[1])
+    //     if (!user || user.status !== CONSTANT_MODEL.USER_STATUS.REQUESTED) {
+    //         throw Error('Account not found')
+    //     }
+    //     const dataToken = jsonwebtoken.verify(data[2], user.token)
+    //     if (dataToken.userId !== user.id || dataToken.email !== user.email) {
+    //         throw ('Data not valid')
+    //     }
 
-        /** here active but should be  approved  and then to active by admin*/
-        await user.update({
-            status: CONSTANT_MODEL.USER_STATUS.ACTIVE
-        })
+    //     /** here active but should be  approved  and then to active by admin*/
+    //     await user.update({
+    //         status: CONSTANT_MODEL.USER_STATUS.ACTIVE
+    //     })
 
-        return 'OK'
-    }
+    //     return 'OK'
+    // }
 
-    @Mutation(returns => String, { name: 'authPasswordChange' })
-    async changePassword(@Ctx() ctx: IContextApp,
-        @Arg('data') data: AuthChangePassword) {
+    // @Mutation(returns => String, { name: 'authPasswordChange' })
+    // async changePassword(@Ctx() ctx: IContextApp,
+    //     @Arg('data') data: AuthChangePassword) {
 
-        const keyData = /(.*),(.*)/.exec(data.key)
-        if (!keyData || !Array.isArray(keyData) || keyData.length < 2) {
-            throw Error('Data are not valid')
-        }
-        const user = await User.findByPk(keyData[1])
-        if (!user || user.status !== 1) {
-            throw Error('Account not found')
-        }
-        const dataToken = jsonwebtoken.verify(keyData[2], user.token)
-        if (dataToken.userId !== user.id || dataToken.email !== user.email) {
-            throw ('Data not valid')
-        }
+    //     const keyData = /(.*),(.*)/.exec(data.key)
+    //     if (!keyData || !Array.isArray(keyData) || keyData.length < 2) {
+    //         throw Error('Data are not valid')
+    //     }
+    //     const user = await User.findByPk(keyData[1])
+    //     if (!user || user.status !== 1) {
+    //         throw Error('Account not found')
+    //     }
+    //     const dataToken = jsonwebtoken.verify(keyData[2], user.token)
+    //     if (dataToken.userId !== user.id || dataToken.email !== user.email) {
+    //         throw ('Data not valid')
+    //     }
 
-        const hash = await bcrypt.hash(data.password, 12)
-        await user.update({
-            password: hash
-        })
-        return 'OK'
-    }
+    //     const hash = await bcrypt.hash(data.password, 12)
+    //     await user.update({
+    //         password: hash
+    //     })
+    //     return 'OK'
+    // }
 
-    @Mutation(returns => String, { name: 'authPasswordRecovery' })
-    async accountRecoverPasswordByEmail(@Arg('email', type => String) email: string) {
-        const user = await User.findOne({
-            where: {
-                email: email
-            }
-        })
-        if (!user) {
-            throwArgumentValidationError('email', {}, { message: 'Email not exists in system' })
-        }
+    // @Mutation(returns => String, { name: 'authPasswordRecovery' })
+    // async accountRecoverPasswordByEmail(@Arg('email', type => String) email: string) {
+    //     const user = await User.findOne({
+    //         where: {
+    //             email: email
+    //         }
+    //     })
+    //     if (!user) {
+    //         throwArgumentValidationError('email', {}, { message: 'Email not exists in system' })
+    //     }
 
-        if (user.status !== CONSTANT_MODEL.USER_STATUS.ACTIVE) {
-            throwArgumentValidationError('email', {}, { message: 'Account is not active any more, contact admin!' })
-        }
+    //     if (user.status !== CONSTANT_MODEL.USER_STATUS.ACTIVE) {
+    //         throwArgumentValidationError('email', {}, { message: 'Account is not active any more, contact admin!' })
+    //     }
 
-        const token = AuthResolver.createTempToken()
-        await user.update({
-            token
-        })
+    //     const token = AuthResolver.createTempToken()
+    //     await user.update({
+    //         token
+    //     })
 
-        return 'OK'
-    }
+    //     return 'OK'
+    // }
 
     /*
 /!** Returns current logged account *!/

@@ -11,6 +11,7 @@ import {
     Resolver,
     UseMiddleware
 }                               from 'type-graphql'
+import path from 'path'
 import {
     AutoIncrement,
     BeforeCount,
@@ -42,6 +43,7 @@ import {
 }                               from '../graphql/resolvers/basic'
 import {
     ChangePasswordLinkType,
+    UploadType,
     UserChangePasswordType,
     UserType
 }                               from '../graphql/types/User'
@@ -62,6 +64,8 @@ import {
     LoginType
 }                               from '../graphql/types/Login'
 import Sequelize, {FindOptions} from 'sequelize'
+import * as fs from 'fs'
+import { GraphQLUpload } from 'apollo-server-core'
 
 @ObjectType()
 @Table({
@@ -78,13 +82,12 @@ export default class User extends Model {
     })
     id: number
 
-    @Field({nullable: true})
-    @IsEmail
+    @Field()
     @Column({
-        allowNull: true,
+        allowNull: false,
         type: DataType.STRING(63)
     })
-    email: string
+    nickname: string
 
     @Field()
     @Column({
@@ -94,6 +97,14 @@ export default class User extends Model {
     })
     userName: string
 
+
+    @Field({nullable: true})
+    @Column({
+        allowNull: true,
+        type: DataType.STRING(256)
+    })
+    image: string
+
     @Field()
     @Column({
         allowNull: false,
@@ -102,11 +113,20 @@ export default class User extends Model {
     })
     password: string
 
+    @Field()
     @Column({
-        field: 'token',
-        type: DataType.STRING(127)
+        allowNull: false,
+        type: DataType.TINYINT,
+        comment: " 0 - Writer, 1 - Administrator"
     })
-    token: string
+    role: number
+    
+    @Field({nullable: true})
+    @Column({
+        allowNull: true,
+        type: DataType.STRING(512)
+    })
+    description: string
 
     @Field(type => Int)
     @Column({
@@ -126,14 +146,6 @@ export default class User extends Model {
     })
     createdAt: Date
 
-    @Field({nullable: true})
-    @Column({
-        allowNull: true,
-        type: DataType.STRING(127),
-        field: 'created_by'
-    })
-    createdBy: string
-
     @Field()
     @UpdatedAt
     @Column({
@@ -143,13 +155,13 @@ export default class User extends Model {
 
     static async _validateUser (instance: User, options: any = {}, update: boolean) {
         let user = {} as User
-        if (instance.email) {
+        if (instance.nickname) {
             user = await User.findOne({
                 where: {
-                    email: instance.email
+                    nickname: instance.nickname
                 }
             })
-            user && (!update || user.id !== instance.id) && throwArgumentValidationError('email', instance, {message: 'Email already used'})
+            user && (!update || user.id !== instance.id) && throwArgumentValidationError('nickname', instance, {message: 'Nickname already used'})
         }
 
         user = await User.findOne({
@@ -213,16 +225,25 @@ export default class User extends Model {
         }
         const options = {transaction, validate: true}
         try {
+            let user = await User.findOne({
+                where: {
+                  userName: data.userName
+                },
+                ...options
+            })
             /** createdBy and updatedBy need to add in userInsertObject */
             const dataPassword = data.password ? data.password : User.generateTempPassword()
             const hash = await bcrypt.hash(dataPassword, 12)
-    
-    
-            const user = await User.create(_merge({}, {
-                password: hash
+                        
+            user = await User.create(_merge({}, {
+                password: hash,
+                ..._omit(data,['image']),
             }), options)
             if (!user) {
                 throw Error('User not found')
+            }
+             if(data.image) {
+                await User.uploadImage(data.image, ctx)
             }
             await transaction.commit()
             return User.selectOne(user.id, ctx)
@@ -242,7 +263,7 @@ export default class User extends Model {
         try {
             let user = await User.findOne({
                 where: {
-                    id: id
+                    id
                 },
                 ...options
             })
@@ -252,13 +273,16 @@ export default class User extends Model {
             const newData =data
             if (newData) {
                 user = await user.update({
-                    ...newData
+                    ..._omit(newData,['image'])
                 }, options)
+            }
+            if(newData.image) {
+                await User.uploadImage(newData.image, ctx)
             }
             await transaction.commit()
             return User.selectOne(user.id, ctx)
         } catch (e) {
-            transaction.rollback()
+            await transaction.rollback()
             throw (e)
         }
     }
@@ -284,12 +308,12 @@ export default class User extends Model {
                 throwArgumentValidationError('currentPassword', {}, {message: 'Current password not match'})
             }
             if (data.currentPassword === data.password) {
-                throwArgumentValidationError('pin', {}, {message: 'Pin is same with current pin.'})
+                throwArgumentValidationError('password', {}, {message: 'Password is same with current password.'})
             }
             const hash = await bcrypt.hash(data.password, 12)
             await user.update({
                 password: hash
-            })
+            }, options)
             await transaction.commit()
             return User.selectOne(user.id, ctx)
         } catch (e) {
@@ -297,6 +321,33 @@ export default class User extends Model {
             throw (e)
         }
     }
+
+
+    public static async uploadImage (file: UploadType, ctx: IContextApp) {
+        const {createReadStream,filename} = await file
+        const pathName = path.resolve(`images/users/${ctx.userId}/${filename}`)
+        const dirPath = path.resolve(`images/users/${ctx.userId}/`)
+        if(!fs.existsSync(path.resolve('images'))) {
+            await fs.mkdirSync(path.resolve(`images/`))
+        }
+        if(!fs.existsSync(path.resolve('images/users'))){
+            await fs.mkdirSync(path.resolve(`images/users/`))
+        }
+        if(!fs.existsSync(dirPath)){
+            await fs.mkdirSync(dirPath)
+        }
+        const dir = await  fs.readdirSync(dirPath)
+        if (dir.length !== 0) {
+            await  fs.unlinkSync(`${dirPath}/${dir[0]}`)
+        }
+        return new Promise((resolve, reject) => {
+            createReadStream()
+                .pipe(fs.createWriteStream(pathName))
+                .on('finish', () => resolve(`${ctx.userId}/${filename}`))
+                .on('error', () => reject())
+        })
+    }
+
 
 }
 
@@ -349,28 +400,28 @@ export class UserResolver extends BaseResolver {
     /** new added */
 
     /** change password by link from email */
-    @Mutation(returns => String, {name: 'changePasswordByLink'})
-    async changePasswordByLink (@Ctx() ctx: IContextApp,
-        @Arg('data') data: ChangePasswordLinkType) {
+    // @Mutation(returns => String, {name: 'changePasswordByLink'})
+    // async changePasswordByLink (@Ctx() ctx: IContextApp,
+    //     @Arg('data') data: ChangePasswordLinkType) {
 
-        const keyData = /(.*),(.*)/.exec(data.key)
-        if (!keyData || !Array.isArray(keyData) || keyData.length < 2) {
-            throw Error('Data are not valid')
-        }
-        const user = await User.findByPk(keyData[1])
-        if (!user || user.status !== 1) {
-            throw Error('Account not found')
-        }
-        const dataToken = jsonwebtoken.verify(keyData[2], user.token)
-        if (dataToken.accountId !== user.id || dataToken.email !== user.email) {
-            throw ('Data not valid')
-        }
-        const hash = await bcrypt.hash(data.password, 12)
-        await user.update({
-            password: hash
-        })
-        return 'OK'
-    }
+    //     const keyData = /(.*),(.*)/.exec(data.key)
+    //     if (!keyData || !Array.isArray(keyData) || keyData.length < 2) {
+    //         throw Error('Data are not valid')
+    //     }
+    //     const user = await User.findByPk(keyData[1])
+    //     if (!user || user.status !== 1) {
+    //         throw Error('Account not found')
+    //     }
+    //     const dataToken = jsonwebtoken.verify(keyData[2], user.token)
+    //     if (dataToken.accountId !== user.id || dataToken.email !== user.email) {
+    //         throw ('Data not valid')
+    //     }
+    //     const hash = await bcrypt.hash(data.password, 12)
+    //     await user.update({
+    //         password: hash
+    //     })
+    //     return 'OK'
+    // }
 
     static sendEmail = async (user: any, subject: string, action: string) => {
         /**
@@ -397,10 +448,10 @@ export class UserResolver extends BaseResolver {
         }
     
 
-        const token = jsonwebtoken.sign({userId: user.id, email: user.email},
+        const token = jsonwebtoken.sign({userId: user.id, nickname: user.nickname},
             configuration.JWT.KEY,
             {expiresIn: configuration.JWT.KEY_EXPIRE})
-        const refresh = jsonwebtoken.sign({userId: user.id, accountEmail: user.email},
+        const refresh = jsonwebtoken.sign({userId: user.id, nickname: user.nickname},
             configuration.JWT.KEY_REFRESH,
             {expiresIn: configuration.JWT.KEY_REFRESH_EXPIRE})
 
@@ -431,23 +482,23 @@ export class UserResolver extends BaseResolver {
         const options: FindOptions = {
             where: {
                 [Sequelize.Op.or]: [
-                    {email: data.email},
+                    {nickname: data.nickname},
                     {userName: data.userName}
                 ]
             }
         }
         const user = await User.findOne(options)
         if (!user) {
-            throwArgumentValidationError('email', {}, {message: 'User name or password not match'})
+            throwArgumentValidationError('userName', {}, {message: 'User name or password not match'})
         }
         const valid = await bcrypt.compare(data.password, user.password)
         if (!valid) {
-            throwArgumentValidationError('email', {}, {message: 'User name or password not match'})
+            throwArgumentValidationError('userName', {}, {message: 'User name or password not match'})
         }
-        const token = jsonwebtoken.sign({userId: user.id, userEmail: user.email},
+        const token = jsonwebtoken.sign({userId: user.id, nickname: user.nickname},
             configuration.JWT.KEY,
             {expiresIn: configuration.JWT.KEY_EXPIRE})
-        const refresh = jsonwebtoken.sign({userId: user.id, userEmail: user.email},
+        const refresh = jsonwebtoken.sign({userId: user.id, nickname: user.nickname},
             configuration.JWT.KEY_REFRESH,
             {expiresIn: configuration.JWT.KEY_REFRESH_EXPIRE})
         const decod = jsonwebtoken.decode(token)
@@ -464,24 +515,24 @@ export class UserResolver extends BaseResolver {
         return User.selectOne(ctx.userId, ctx)
     }
 
-    @Query(returns => String, {name: 'userPasswordRecovery'})
-    async userRecoverPasswordByEmail (@Arg('email', type => String) email: string) {
-        const user = await User.findOne({
-            where: {
-                email: email
-            }
-        })
-        if (!user) {
-            throwArgumentValidationError('email', {}, {message: 'Email not exists in system'})
-        }
+    // @Query(returns => String, {name: 'userPasswordRecovery'})
+    // async userRecoverPasswordByEmail (@Arg('email', type => String) email: string) {
+    //     const user = await User.findOne({
+    //         where: {
+    //             email: email
+    //         }
+    //     })
+    //     if (!user) {
+    //         throwArgumentValidationError('email', {}, {message: 'Email not exists in system'})
+    //     }
 
-        if (user.status !== CONSTANT_MODEL.STATUS.ACTIVE) {
-            throwArgumentValidationError('email', {}, {message: 'Account is not active any more, contact admin!'})
-        }
+    //     if (user.status !== CONSTANT_MODEL.STATUS.ACTIVE) {
+    //         throwArgumentValidationError('email', {}, {message: 'Account is not active any more, contact admin!'})
+    //     }
 
-        await UserResolver.sendEmail(user, 'Change Password', 'change-password')
-        return 'OK'
-    }
+    //     await UserResolver.sendEmail(user, 'Change Password', 'change-password')
+    //     return 'OK'
+    // }
 
     @UseMiddleware(checkJWT)
     @Mutation(returns => User, {name: 'changePasswordUser'})
@@ -491,5 +542,25 @@ export class UserResolver extends BaseResolver {
         return User.changePasswordUser(userId, data, ctx)
     }
 
+    @UseMiddleware(checkJWT)
+    @Query(returns => String, {nullable: true, name: 'getUserImageUrl'})
+    async getUserImageUrl (
+        @Arg('userId', type=> Int) userId: number,
+        @Ctx() ctx: IContextApp) {
+        const pathName = path.resolve(`images/users/${userId}/`)
+        if(!fs.existsSync(pathName)) return ''
+        const files = await fs.readdirSync(pathName)
+        if(!files.length) return ''
+        return `${userId}/${files[0]}`
+    }
+
+
+
+    @UseMiddleware(checkJWT)
+    @Mutation(returns => String, {name: 'uploadImage'})
+    uploadImage (@Arg('file', () => GraphQLUpload)  file: UploadType,
+        @Ctx() ctx: IContextApp) {
+        return User.uploadImage(file,ctx)
+    }
 }
 

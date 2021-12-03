@@ -4,9 +4,19 @@ import {
 }                        from 'type-graphql'
 import {IsNoBlankInWord} from '../validations'
 import {
-    IsEmail,
     Length
 }                        from 'class-validator'
+import {GraphQLUpload} from 'apollo-server-express'
+import {Stream}           from 'stream'
+
+
+export type UploadType = {
+    filename: string
+    mimetype: string
+    encoding: string
+    createReadStream: ()=> Stream
+}
+
 
 @InputType({isAbstract: true})
 export class UserType {
@@ -18,8 +28,15 @@ export class UserType {
 
     @Field({nullable: true})
     @Length(1, 63)
-    @IsEmail()
-    email: string
+    @IsNoBlankInWord({message: 'Nickname must be with out blanks'})
+    nickname: string
+
+    @Field({nullable: true})
+    description: string
+
+    @Field(type => GraphQLUpload,{nullable:true})
+    image: UploadType
+
 
     @Field({nullable: true})
     @Length(4, 63)

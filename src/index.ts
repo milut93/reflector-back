@@ -18,10 +18,8 @@ import { createTestData } from 'test/Init'
 
 const app = express()
 app.use(bodyParser.json({limit: '50mb'}))
-app.use(fileUpload({
-    limits: {fileSize: 50 * 1024 * 1024},
-}))
 app.use(cookieParser())
+
 
 const corsOptions = {
     credentials: true,
@@ -38,37 +36,15 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 
-
 const dir = path.join(__dirname, '../images')
 
 app.use(express.static(dir))
 
-app.post('/upload_image/', async (req, resp) => {
-    // if (!req.files) {
-    //     return resp.status(400).send({'message': 'image is required'})
-    // }
-    // const file = req.files as any
-    // const {image} = file
-    // const {driveThumbnailUrlPath, googleDriveFolderItemId} = configuration.GOOGLE
-    // const uploadedData = await uploadFileFromBuffer(image, googleDriveFolderItemId)
-    // if (!uploadedData) {
-    //     return resp.status(400).send({'message': 'Image not exists'})
-    // }
-    // const {id, name, size} = uploadedData
-    // const itemId = req.body.itemId
-    // const itemImage = await ItemsImages.insertUpdateImages({
-    //     name: name,
-    //     googleId: id,
-    //     url: `${driveThumbnailUrlPath}${id}`,
-    //     itemId: Number(itemId),
-    //     type: IMAGE_TYPES.PRIMARY,
-    //     size: Number(size)
-    // })
-    // if (!itemImage) {
-    //     return resp.status(400).send({'message': 'Image not exists '})
-    // }
-    // return resp.status(200).send({ok: true})
+app.get('/images/users/:id/:file', async (req, resp) => {
+    resp.sendFile(path.join(__dirname, `../${req.originalUrl}`))
 })
+
+
 app.get('/refresh_token', async (req, resp) => {
     const token = req.cookies['refresh-token']
     if (!token) {
@@ -84,7 +60,6 @@ app.get('/refresh_token', async (req, resp) => {
     if (!user) {
         throw new Error('User not found in system')
     }
-    console.log(user)
     createRefreshTokenCookie(user, resp)
     return resp.send({ok: true, token: createAccessToken(user)})
 });
