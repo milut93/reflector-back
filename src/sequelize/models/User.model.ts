@@ -341,7 +341,7 @@ export default class User extends Model {
         createReadStream()
           .pipe(fs.createWriteStream(pathName))
           .on('finish', () => resolve(`${ctx.userId}/${filename}`))
-          .on('error', () => reject())
+          .on('error', (e) => reject(e))
       })
     }
 }

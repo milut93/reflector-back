@@ -107,7 +107,6 @@ export function createBaseResolver (ModelClass: ClassType, options: ICreateBaseR
         @UseMiddleware(checkJWT, updateModelBefore)
         @Mutation(returns => ModelClass, { name: `update${className}` })
         _qModelUpdateOne (@Arg('id', type => Int)id: number,
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
           // @ts-ignore
             @Arg('data', type => UpdateType) data: UpdateType,
             @Ctx() ctx: IContextApp) {
@@ -117,7 +116,6 @@ export function createBaseResolver (ModelClass: ClassType, options: ICreateBaseR
 
         @UseMiddleware(checkJWT)
         @Mutation(returns => ModelClass, { name: `insert${className}` })
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         _qModelInsertOne (@Arg('data', type => InsertType) data: InsertType,
             @Ctx() ctx: IContextApp) {

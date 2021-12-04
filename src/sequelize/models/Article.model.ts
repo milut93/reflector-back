@@ -218,16 +218,12 @@ export default class Article extends Model {
     }
 
     public static async updateView (id:number, ctx: IContextApp): TModelResponse<Article> {
-      try {
-        const article = await Article.selectOne(id, ctx)
-        if (!article) {
-          throw Error('Article not exist in database')
-        }
-        await article.update({ views: article.views + 1 })
-        return Article.selectOne(id, ctx)
-      } catch (e) {
-        throw e
+      const article = await Article.selectOne(id, ctx)
+      if (!article) {
+        throw Error('Article not exist in database')
       }
+      await article.update({ views: article.views + 1 })
+      return Article.selectOne(id, ctx)
     }
 }
 
