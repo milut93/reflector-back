@@ -1,17 +1,9 @@
-import {
-    Field,
-    InputType, ObjectType
-} from 'type-graphql'
-import {
-    IsNoBlankInWord,
-} from '../validations'
-import {
-    Length
-} from 'class-validator'
+import { Field, InputType, ObjectType } from 'type-graphql'
+import { IsNoBlankInWord } from '../validations'
+import { Length } from 'class-validator'
 
 @InputType({ isAbstract: true })
 export class LoginType {
-
     @Field({ nullable: true })
     @IsNoBlankInWord({ message: 'User Name must be with out blanks' })
     userName: string
@@ -22,14 +14,12 @@ export class LoginType {
 
     @Field()
     @Length(4, 63)
-    // @IsPasswordValid({message: 'Password is not valid'})
+        // @IsPasswordValid({message: 'Password is not valid'})
     password: string
-
 }
 
 @ObjectType('loginTokens')
 export class LoginResponseType {
-
     @Field(type => String)
     token: string
 
