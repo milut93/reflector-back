@@ -1,14 +1,11 @@
 import 'reflect-metadata'
 import { buildSchemaSync } from 'type-graphql'
-import {
-  Sequelize,
-  SequelizeOptions
-} from 'sequelize-typescript'
+import { Sequelize, SequelizeOptions } from 'sequelize-typescript'
 import settings from '../../config/index'
 import resolvers from './graphql/resolvers'
-import path from 'path'
 
-let sequelize
+// eslint-disable-next-line no-void
+let sequelize = void(0)
 
 export const initSequelize = async (env?: string, drop?: boolean) => {
   const config = env || 'local'
@@ -16,8 +13,10 @@ export const initSequelize = async (env?: string, drop?: boolean) => {
     ...settings.sequelizeSettings[config],
     ...{
       underscored: true,
-      modelPaths: [path.join(__dirname, '/**/*.model.ts')],
-      migrationsPaths: [path.join(__dirname, '/**/*.migration.ts')]
+      // eslint-disable-next-line node/no-path-concat
+      modelPaths: [__dirname + '/**/*.model.ts'],
+      // eslint-disable-next-line node/no-path-concat
+      migrationsPaths: [__dirname + '/**/*.migration.ts']
     }
   }
   sequelize = new Sequelize(options as SequelizeOptions)

@@ -1,41 +1,8 @@
 import 'reflect-metadata'
-import {
-  Arg,
-  Ctx,
-  Field,
-  ID,
-  Int,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-  UseMiddleware
-} from 'type-graphql'
-import {
-  AutoIncrement,
-  BelongsTo,
-  Column,
-  CreatedAt,
-  DataType,
-  ForeignKey,
-  HasMany,
-  Model,
-  PrimaryKey,
-  Table,
-  UpdatedAt
-} from 'sequelize-typescript'
-import { INDEX_RELATIONS_TYPE } from '../constants'
-import { omit as _omit } from 'lodash'
-import {
-  setUserFilterToWhereSearch,
-  throwArgumentValidationError
-} from './index'
-import {
-  createBaseResolver,
-  IContextApp,
-  TModelResponse,
-  TModelResponseSelectAll
-} from '../graphql/resolvers/basic'
+import { Arg, Ctx, Field, ID, Int, Mutation, ObjectType, Resolver, UseMiddleware } from 'type-graphql'
+import { AutoIncrement, Column, CreatedAt, DataType, Model, PrimaryKey, Table, UpdatedAt } from 'sequelize-typescript'
+import { setUserFilterToWhereSearch, throwArgumentValidationError } from './index'
+import { createBaseResolver, IContextApp, TModelResponse, TModelResponseSelectAll } from '../graphql/resolvers/basic'
 import { CategoryType } from '../graphql/types/Category'
 import { checkJWT } from '../graphql/middlewares'
 

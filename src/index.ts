@@ -2,15 +2,10 @@ import 'module-alias/register'
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import fileUpload from 'express-fileupload'
 import configuration from '../config/index'
 import cookieParser from 'cookie-parser'
 import path from 'path'
-import {
-  createAccessToken,
-  createRefreshTokenCookie,
-  verifyRefreshToken
-} from 'sequelize/graphql/resolvers/Auth'
+import { createAccessToken, createRefreshTokenCookie, verifyRefreshToken } from 'sequelize/graphql/resolvers/Auth'
 import { User } from 'sequelize/models'
 import { initSequelize } from 'sequelize/sequelize'
 import createApolloServer from 'apolloServer'

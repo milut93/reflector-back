@@ -1,38 +1,12 @@
-import {
-  Request,
-  Response
-} from 'express'
-import {
-  Arg,
-  Args,
-  ClassType,
-  Ctx,
-  Int,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-  UseMiddleware
-} from 'type-graphql'
+import { Request, Response } from 'express'
+import { Arg, Args, ClassType, Ctx, Int, Mutation, ObjectType, Query, Resolver, UseMiddleware } from 'type-graphql'
 import { Model } from 'sequelize-typescript'
-import {
-  FindOptions,
-  InstanceUpdateOptions
-} from 'sequelize'
+import { FindOptions, InstanceUpdateOptions } from 'sequelize'
 import pluralize from 'pluralize'
-import {
-  checkJWT,
-  updateModelBefore
-} from '../middlewares'
+import { checkJWT, updateModelBefore } from '../middlewares'
 import { requestOptions } from '../FilterRequest'
-import {
-  get as _get,
-  lowerFirst as _lowerFirst
-} from 'lodash'
-import {
-  PaginatedResponse,
-  RequestFilterSort
-} from '../types/basic'
+import { get as _get, lowerFirst as _lowerFirst } from 'lodash'
+import { PaginatedResponse, RequestFilterSort } from '../types/basic'
 
 export type TSelectAll<T> = {
     rows: T[];
@@ -57,10 +31,10 @@ export interface IContextApp {
 interface ICreateBaseResolve {
     updateInputType: ClassType,
     insertInputType: ClassType,
-    selectOne?: (id: number, ctx?: IContextApp)=> Promise<Model | null>
-    selectAll?: (options: FindOptions, ctx?: IContextApp)=> Promise<{ rows: Model[]; count: number }>
-    updateOne?: (id: number, data: InstanceUpdateOptions, ctx?: IContextApp)=> Promise<Model>
-    insertOne?: (data: object, ctx?: IContextApp)=> Promise<any>
+    selectOne?: (id: number, ctx?: IContextApp) => Promise<Model | null>
+    selectAll?: (options: FindOptions, ctx?: IContextApp) => Promise<{ rows: Model[]; count: number }>
+    updateOne?: (id: number, data: InstanceUpdateOptions, ctx?: IContextApp) => Promise<Model>
+    insertOne?: (data: object, ctx?: IContextApp) => Promise<any>
 }
 
 export function createBaseResolver (ModelClass: ClassType, options: ICreateBaseResolve) {
@@ -79,8 +53,8 @@ export function createBaseResolver (ModelClass: ClassType, options: ICreateBaseR
     abstract class BaseResolver {
         @UseMiddleware(checkJWT)
         @Query(returns => ModelClass, { nullable: true, name: `${_lowerFirst(className).replace(/\s+/, '')}` })
-      _qModelGetOne (@Arg('id', type => Int)id: number,
-            @Ctx() ctx: IContextApp) {
+      _qModelGetOne (@Arg('id', type => Int) id: number,
+                      @Ctx() ctx: IContextApp) {
         const fn = options.selectOne ? options.selectOne : _get(ModelClass, 'selectOne')
         return fn ? fn(id, ctx) : Error('Select one function not exists')
       }
@@ -88,7 +62,7 @@ export function createBaseResolver (ModelClass: ClassType, options: ICreateBaseR
         @UseMiddleware(checkJWT)
         @Query(returns => ClassPaginationResponse, { name: `${_lowerFirst(plural).replace(/\s+/, '')}` })
         async _qModelSelectAll (@Ctx() ctx: IContextApp,
-            @Args() request: RequestFilterSort) {
+                               @Args() request: RequestFilterSort) {
           const find = requestOptions(request)
           const fn = options.selectAll ? options.selectAll : _get(ModelClass, 'selectAll')
           if (!fn) {
@@ -106,19 +80,21 @@ export function createBaseResolver (ModelClass: ClassType, options: ICreateBaseR
 
         @UseMiddleware(checkJWT, updateModelBefore)
         @Mutation(returns => ModelClass, { name: `update${className}` })
-        _qModelUpdateOne (@Arg('id', type => Int)id: number,
-          // @ts-ignore
-            @Arg('data', type => UpdateType) data: UpdateType,
-            @Ctx() ctx: IContextApp) {
+        _qModelUpdateOne (@Arg('id', type => Int) id: number,
+                         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                         // @ts-ignore
+                         @Arg('data', type => UpdateType) data: UpdateType,
+                         @Ctx() ctx: IContextApp) {
           const fn = options.updateOne ? options.updateOne : _get(ModelClass, 'updateOne')
           return fn ? fn(id, data, ctx) : Error('Update One not implemented')
         }
 
         @UseMiddleware(checkJWT)
         @Mutation(returns => ModelClass, { name: `insert${className}` })
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         _qModelInsertOne (@Arg('data', type => InsertType) data: InsertType,
-            @Ctx() ctx: IContextApp) {
+                         @Ctx() ctx: IContextApp) {
           const fn = options.insertOne ? options.insertOne : _get(ModelClass, 'insertOne')
           return fn ? fn(data, ctx) : Error('Insert action not available')
         }

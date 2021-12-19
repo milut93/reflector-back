@@ -1,11 +1,4 @@
-import {
-  ArgsType,
-  ClassType,
-  Field,
-  InputType,
-  Int,
-  ObjectType
-} from 'type-graphql'
+import { ArgsType, ClassType, Field, InputType, Int, ObjectType } from 'type-graphql'
 import GraphQLJSON from 'graphql-type-json'
 import { Min } from 'class-validator'
 

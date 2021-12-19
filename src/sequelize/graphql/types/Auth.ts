@@ -1,13 +1,6 @@
-import {
-  Field,
-  InputType,
-  ObjectType
-} from 'type-graphql'
+import { Field, InputType, ObjectType } from 'type-graphql'
 import { Length } from 'class-validator'
-import {
-  IsNoBlankInWord,
-  IsPasswordValid
-} from '../validations'
+import { IsNoBlankInWord, IsPasswordValid } from '../validations'
 import { User } from '../../models'
 
 @ObjectType('AuthLoginTokens')

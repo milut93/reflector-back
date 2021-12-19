@@ -1,16 +1,5 @@
 import 'reflect-metadata'
-import {
-  Arg,
-  Ctx,
-  Field,
-  ID,
-  Int,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-  UseMiddleware
-} from 'type-graphql'
+import { Arg, Ctx, Field, ID, Int, Mutation, ObjectType, Resolver, UseMiddleware } from 'type-graphql'
 import {
   AutoIncrement,
   BelongsTo,
@@ -24,22 +13,13 @@ import {
   Table,
   UpdatedAt
 } from 'sequelize-typescript'
-import { omit as _omit } from 'lodash'
-import {
-  setUserFilterToWhereSearch,
-  throwArgumentValidationError
-} from './index'
-import {
-  createBaseResolver,
-  IContextApp,
-  TModelResponse,
-  TModelResponseSelectAll
-} from '../graphql/resolvers/basic'
+import { setUserFilterToWhereSearch, throwArgumentValidationError } from './index'
+import { createBaseResolver, IContextApp, TModelResponse, TModelResponseSelectAll } from '../graphql/resolvers/basic'
 import { ArticlesType } from '../graphql/types/Category'
 import { checkJWT } from '../graphql/middlewares'
 import Category from './Category.model'
 import User from './User.model'
-import ArticleImgVideo, { ArticlesVideo } from './ArticleImgVideo.model'
+import ArticleImgVideo from './ArticleImgVideo.model'
 
 @ObjectType()
 @Table({
@@ -217,13 +197,18 @@ export default class Article extends Model {
       return Article.findAndCountAll(options)
     }
 
-    public static async updateView (id:number, ctx: IContextApp): TModelResponse<Article> {
-      const article = await Article.selectOne(id, ctx)
-      if (!article) {
-        throw Error('Article not exist in database')
+    public static async updateView (id: number, ctx: IContextApp): TModelResponse<Article> {
+      // eslint-disable-next-line no-useless-catch
+      try {
+        const article = await Article.selectOne(id, ctx)
+        if (!article) {
+          throw Error('Article not exist in database')
+        }
+        await article.update({ views: article.views + 1 })
+        return Article.selectOne(id, ctx)
+      } catch (e) {
+        throw e
       }
-      await article.update({ views: article.views + 1 })
-      return Article.selectOne(id, ctx)
     }
 }
 
@@ -237,14 +222,14 @@ export class ArticleResolver extends BaseResolver {
     @UseMiddleware(checkJWT)
     @Mutation(returns => Article, { name: 'deleteArticle' })
   async _deleteArticle (@Arg('id', type => Int) id: number,
-        @Ctx() ctx: IContextApp) {
+                         @Ctx() ctx: IContextApp) {
     return Article.deleteOne(id, ctx)
   }
 
     @UseMiddleware(checkJWT)
     @Mutation(returns => Article, { name: 'updateArticleView' })
     async _updateArticleView (@Arg('id', type => Int) id: number,
-        @Ctx() ctx: IContextApp) {
+                             @Ctx() ctx: IContextApp) {
       return Article.updateView(id, ctx)
     }
 }

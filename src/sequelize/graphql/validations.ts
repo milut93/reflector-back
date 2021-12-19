@@ -1,13 +1,6 @@
-import {
-  registerDecorator,
-  ValidationArguments,
-  ValidationOptions
-} from 'class-validator'
+import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator'
 import Sequelize from 'sequelize'
-import {
-  Model,
-  ModelCtor
-} from 'sequelize-typescript'
+import { Model, ModelCtor } from 'sequelize-typescript'
 
 export function IsNoBlankInWord (validationOptions?: ValidationOptions) {
   return function(object: Record<string, any>, propertyName: string) {

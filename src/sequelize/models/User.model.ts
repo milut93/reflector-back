@@ -1,29 +1,14 @@
 import 'reflect-metadata'
-import {
-  Arg,
-  Ctx,
-  Field,
-  ID,
-  Int,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-  UseMiddleware
-} from 'type-graphql'
+import { Arg, Ctx, Field, ID, Int, Mutation, ObjectType, Query, Resolver, UseMiddleware } from 'type-graphql'
 import path from 'path'
 import {
   AutoIncrement,
   BeforeCount,
   BeforeCreate,
   BeforeUpdate,
-  BelongsTo,
   Column,
   CreatedAt,
   DataType,
-  ForeignKey,
-  HasOne,
-  IsEmail,
   Model,
   PrimaryKey,
   Table,
@@ -31,38 +16,15 @@ import {
 } from 'sequelize-typescript'
 import * as validations from './validations'
 import { CONSTANT_MODEL } from '../constants'
-import {
-  setUserFilterToWhereSearch,
-  throwArgumentValidationError
-} from './index'
-import {
-  createBaseResolver,
-  IContextApp,
-  TModelResponse,
-  TModelResponseSelectAll
-} from '../graphql/resolvers/basic'
-import {
-  ChangePasswordLinkType,
-  UploadType,
-  UserChangePasswordType,
-  UserType
-} from '../graphql/types/User'
-import {
-  merge as _merge,
-  omit as _omit,
-  random as _random
-} from 'lodash'
+import { setUserFilterToWhereSearch, throwArgumentValidationError } from './index'
+import { createBaseResolver, IContextApp, TModelResponse, TModelResponseSelectAll } from '../graphql/resolvers/basic'
+import { UploadType, UserChangePasswordType, UserType } from '../graphql/types/User'
+import { merge as _merge, omit as _omit, random as _random } from 'lodash'
 import bcrypt from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 import configuration from '../../../config/index'
-import {
-  checkJWT,
-  checkJWTRefresh
-} from '../graphql/middlewares'
-import {
-  LoginResponseType,
-  LoginType
-} from '../graphql/types/Login'
+import { checkJWT, checkJWTRefresh } from '../graphql/middlewares'
+import { LoginResponseType, LoginType } from '../graphql/types/Login'
 import Sequelize, { FindOptions } from 'sequelize'
 import * as fs from 'fs'
 import { GraphQLUpload } from 'apollo-server-core'
@@ -341,7 +303,8 @@ export default class User extends Model {
         createReadStream()
           .pipe(fs.createWriteStream(pathName))
           .on('finish', () => resolve(`${ctx.userId}/${filename}`))
-          .on('error', (e) => reject(e))
+        // eslint-disable-next-line prefer-promise-reject-errors
+          .on('error', () => reject())
       })
     }
 }

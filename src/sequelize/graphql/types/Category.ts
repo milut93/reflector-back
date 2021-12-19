@@ -1,8 +1,4 @@
-import {
-  Field,
-  InputType,
-  Int
-} from 'type-graphql'
+import { Field, InputType, Int } from 'type-graphql'
 
 @InputType({ isAbstract: true })
 export class CategoryType {

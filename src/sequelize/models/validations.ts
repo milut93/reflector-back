@@ -11,7 +11,6 @@ export const isStatusValid = (model: string, value) => {
     case modelSTATUS.ACTIVE:
     case modelSTATUS.DELETED:
     case modelSTATUS.NOT_ACTIVE:
-      break
     default:
       throw Error(message)
   }

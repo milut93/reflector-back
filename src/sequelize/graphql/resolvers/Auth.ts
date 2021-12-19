@@ -1,39 +1,16 @@
-import {
-  Arg,
-  Ctx,
-  Mutation,
-  Query,
-  Resolver,
-  UseMiddleware
-} from 'type-graphql'
-import {
-  throwArgumentValidationError,
-  User
-} from '../../models'
+import { Arg, Ctx, Query, Resolver } from 'type-graphql'
+import { throwArgumentValidationError, User } from '../../models'
 
 import bcrypt from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 import configuration from '../../../../config'
 import { IContextApp } from './basic'
-import {
-  AuthChangePassword,
-  AuthUnlock,
-  AuthUserLogin,
-  AuthUserRegister,
-  LoginResponse
-} from '../types/Auth'
-import {
-  CONSTANT_MODEL,
-  SETTINGS
-} from '../../constants'
-import CONFIGURATION from '../../../../config/index'
-import _ from 'lodash'
-import { FindOptions } from 'sequelize'
-import { checkJWT } from '../middlewares'
+import { AuthUserLogin, LoginResponse } from '../types/Auth'
 
 @Resolver()
 export default class AuthResolver {
     private static createTempToken = () => {
+      // eslint-disable-next-line array-callback-return
       const token = [...new Array(127)].map(x => {
         let char = Math.floor((Math.random() * (122 - 48))) + 48
         while (char) {
@@ -50,7 +27,7 @@ export default class AuthResolver {
 
     @Query(returns => LoginResponse, { name: 'authLogin' })
     async authLogin (@Arg('data') data: AuthUserLogin,
-        @Ctx() ctx: IContextApp) {
+                    @Ctx() ctx: IContextApp) {
       /**   First thy to find user by user name, we can check before this is userName valid email  */
       const user = await User.findOne({
         where: {
@@ -189,13 +166,13 @@ export default class AuthResolver {
   // }
 
   /*
-/!** Returns current logged account *!/
+  /!** Returns current logged account *!/
 
-    @UseMiddleware(checkJWT)
-    @Query(returns => Account, {name: 'authLogged'})
-    async accountLogged(@Ctx() ctx: IContextApp) {
-        return Account.selectOne(ctx.accountId, ctx)
-    } */
+      @UseMiddleware(checkJWT)
+      @Query(returns => Account, {name: 'authLogged'})
+      async accountLogged(@Ctx() ctx: IContextApp) {
+          return Account.selectOne(ctx.accountId, ctx)
+      } */
 }
 
 export const createAccessToken = (user: User) => {

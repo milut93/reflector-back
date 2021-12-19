@@ -4,7 +4,8 @@ import { ApolloServer } from 'apollo-server-express'
 
 import configuration from '../config'
 
-let server
+// eslint-disable-next-line no-void
+let server = void(0)
 
 const context = (data) => {
   const { req, res } = data
@@ -22,7 +23,8 @@ const context = (data) => {
     const data = authorization.split(' ')
     return data.length > 1 ? data[1] : ''
   })()
-  const refreshTokenCookie = req.cookies ? req.cookies['refresh-token'] : undefined
+  // eslint-disable-next-line no-void
+  const refreshTokenCookie = req.cookies ? req.cookies['refresh-token'] : void(0)
   const CONTEXT = {
     req: req,
     res: res,
