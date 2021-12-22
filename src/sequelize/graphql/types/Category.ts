@@ -1,4 +1,6 @@
 import { Field, InputType, Int } from 'type-graphql'
+import {GraphQLUpload} from "apollo-server-express";
+import {UploadType} from "./User";
 
 @InputType({ isAbstract: true })
 export class CategoryType {
@@ -17,9 +19,10 @@ export class ArticlesType {
     @Field({ nullable: true })
     content: string
 
+    @Field(type => GraphQLUpload, { nullable: true })
+    image: UploadType
+
     @Field(type => Int, { nullable: true })
     categoryId: number
 
-    @Field(type => Int, { nullable: true })
-    userId: number
 }

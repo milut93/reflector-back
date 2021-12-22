@@ -20,6 +20,7 @@ import { checkJWT } from '../graphql/middlewares'
 import Category from './Category.model'
 import User from './User.model'
 import ArticleImgVideo from './ArticleImgVideo.model'
+import {omit as _omit} from 'lodash'
 
 @ObjectType()
 @Table({
@@ -166,8 +167,15 @@ export default class Article extends Model {
         if (!instance) {
           throwArgumentValidationError('id', data, { message: 'Article not exists' })
         }
-
-        await instance.update(data, options)
+        await instance.update({
+            ..._omit(data,['image'])
+        }, options)
+        if(data.image) {
+            await ArticleImgVideo.updateOne({
+                articleId: instance.id,
+                image:data.image
+            },ctx,options)
+        }
         await transaction.commit()
         return Article.selectOne(id, ctx)
       } catch (e) {
@@ -182,8 +190,15 @@ export default class Article extends Model {
 
       try {
         const instance = await Article.create({
-          ...data
+          ..._omit(data,['image']),
+            userId: ctx.userId
         }, options)
+        if(data.image) {
+            await ArticleImgVideo.insertOne({
+                articleId: instance.id,
+                image:data.image
+            }, ctx,options)
+        }
         await transaction.commit()
         return Article.selectOne(instance.id, ctx)
       } catch (e) {

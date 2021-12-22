@@ -1,10 +1,22 @@
 import 'reflect-metadata'
 import { Arg, Ctx, Field, ID, Int, Mutation, ObjectType, Resolver, UseMiddleware } from 'type-graphql'
-import { AutoIncrement, Column, CreatedAt, DataType, Model, PrimaryKey, Table, UpdatedAt } from 'sequelize-typescript'
+import {
+    AutoIncrement,
+    Column,
+    CreatedAt,
+    DataType,
+    HasMany,
+    Model,
+    PrimaryKey,
+    Table,
+    UpdatedAt
+} from 'sequelize-typescript'
 import { setUserFilterToWhereSearch, throwArgumentValidationError } from './index'
 import { createBaseResolver, IContextApp, TModelResponse, TModelResponseSelectAll } from '../graphql/resolvers/basic'
 import { CategoryType } from '../graphql/types/Category'
 import { checkJWT } from '../graphql/middlewares'
+import ArticleImgVideo from "./ArticleImgVideo.model";
+import Article from "./Article.model";
 
 @ObjectType()
 @Table({
@@ -47,6 +59,11 @@ export default class Category extends Model {
       field: 'updated_at'
     })
     updatedAt: Date
+
+
+    @Field(type => [Article], { nullable: true })
+    @HasMany(() => Article)
+    articles: Article[]
 
     public static selectOne (id: number, ctx?: IContextApp): Promise<Category> {
       return Category.findOne({
