@@ -28,6 +28,7 @@ import { LoginResponseType, LoginType } from '../graphql/types/Login'
 import Sequelize, { FindOptions } from 'sequelize'
 import * as fs from 'fs'
 import { GraphQLUpload } from 'apollo-server-core'
+import {modelSTATUS} from "./validations";
 
 @ObjectType()
 @Table({
@@ -92,10 +93,7 @@ export default class User extends Model {
     @Column({
       allowNull: true,
       type: DataType.TINYINT,
-      defaultValue: CONSTANT_MODEL.STATUS.ACTIVE,
-      validate: {
-        isValid: (value) => validations.isStatusValid.bind(null, 'User')(value)
-      }
+      defaultValue: modelSTATUS.ACTIVE
     })
     status: number
 
