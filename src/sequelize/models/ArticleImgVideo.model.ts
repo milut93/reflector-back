@@ -138,13 +138,13 @@ export default class ArticleImgVideo extends Model {
         }
         if (data.image) {
             const file = await ArticleImgVideo.uploadImage(data.articleId, data.image, ctx)
-            const url = path.join(__dirname, `../../../images/${file}`)
+            const url = `/images/articles/${file}`
 
-            instance = await ArticleImgVideo.create({
+          await instance.update({
                 ..._data,
                 url,
                 type: 0
-            }, options)
+          }, options)
         }
         await instance.update(data, options)
         return ArticleImgVideo.selectOne(instance.id, ctx)
