@@ -90,7 +90,7 @@ export default class User extends Model {
 
     @Field(type => Int)
     @Column({
-      allowNull: false,
+      allowNull: true,
       type: DataType.TINYINT,
       defaultValue: CONSTANT_MODEL.STATUS.ACTIVE,
       validate: {

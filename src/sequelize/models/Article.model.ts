@@ -111,7 +111,7 @@ export default class Article extends Model {
           {
             model: Category,
             as: 'category',
-            required: true
+            required: false
           },
           {
             model: User,

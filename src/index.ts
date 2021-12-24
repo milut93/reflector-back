@@ -37,6 +37,10 @@ app.get('/images/users/:id/:file', async (req, resp) => {
   resp.sendFile(path.join(__dirname, `../${req.originalUrl}`))
 })
 
+app.get('/images/articles/:id/:file', async (req, resp) => {
+  resp.sendFile(path.join(__dirname, `../${req.originalUrl}`))
+})
+
 app.get('/refresh_token', async (req, resp) => {
   const token = req.cookies['refresh-token']
   if (!token) {

@@ -152,7 +152,7 @@ export default class ArticleImgVideo extends Model {
 
     public static async insertOne(data: ArticlesVideo, ctx: IContextApp, options = {}): Promise<ArticleImgVideo> {
         const file = await ArticleImgVideo.uploadImage(data.articleId, data.image, ctx)
-        const url = path.join(__dirname, `../../../images/articles/${file}`)
+        const url = `/images/articles/${file}`
         return ArticleImgVideo.create({
             articleId: Number(data.articleId),
             url,
