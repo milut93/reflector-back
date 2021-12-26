@@ -201,7 +201,7 @@ export default class User extends Model {
           throw Error('User not found')
         }
         if (data.image) {
-          await User.uploadImage(data.image, ctx)
+          await User.uploadImage(data.image,user.id,  ctx)
         }
         await transaction.commit()
         return User.selectOne(user.id, ctx)
@@ -235,7 +235,7 @@ export default class User extends Model {
           }, options)
         }
         if (newData.image) {
-          await User.uploadImage(newData.image, ctx)
+          await User.uploadImage(newData.image, user.id, ctx)
         }
         await transaction.commit()
         return User.selectOne(user.id, ctx)
@@ -280,10 +280,10 @@ export default class User extends Model {
       }
     }
 
-    public static async uploadImage (file: UploadType, ctx: IContextApp) {
+    public static async uploadImage (file: UploadType, userId: number, ctx: IContextApp) {
       const { createReadStream, filename } = await file
-      const pathName = path.resolve(`images/users/${ctx.userId}/${filename}`)
-      const dirPath = path.resolve(`images/users/${ctx.userId}/`)
+      const pathName = path.resolve(`images/users/${userId}/${filename}`)
+      const dirPath = path.resolve(`images/users/${userId}/`)
       if (!fs.existsSync(path.resolve('images'))) {
         await fs.mkdirSync(path.resolve('images/'))
       }
@@ -300,7 +300,7 @@ export default class User extends Model {
       return new Promise((resolve, reject) => {
         createReadStream()
           .pipe(fs.createWriteStream(pathName))
-          .on('finish', () => resolve(`${ctx.userId}/${filename}`))
+          .on('finish', () => resolve(`${userId}/${filename}`))
         // eslint-disable-next-line prefer-promise-reject-errors
           .on('error', () => reject())
       })
@@ -509,8 +509,9 @@ export class UserResolver extends BaseResolver {
     @UseMiddleware(checkJWT)
     @Mutation(returns => String, { name: 'uploadImage' })
     uploadImage (@Arg('file', () => GraphQLUpload) file: UploadType,
+                 @Arg('userId', () => GraphQLUpload) userId: number,
         @Ctx() ctx: IContextApp) {
-      return User.uploadImage(file, ctx)
+      return User.uploadImage(file, userId, ctx)
     }
 }
 
