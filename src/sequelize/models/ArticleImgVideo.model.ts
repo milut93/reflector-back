@@ -122,7 +122,7 @@ export default class ArticleImgVideo extends Model {
         }
     }
 
-    public static async updateOne(data: ArticlesVideo, ctx: IContextApp, options = {}): TModelResponse<ArticleImgVideo> {
+    public static async updateOne(data: ArticlesVideo, ctx: IContextApp, options = {}) {
         let instance = await ArticleImgVideo.findOne({
             where: {
                 articleId: data.articleId
@@ -147,13 +147,12 @@ export default class ArticleImgVideo extends Model {
           }, options)
         }
         await instance.update(data, options)
-        return ArticleImgVideo.selectOne(instance.id, ctx)
     }
 
-    public static async insertOne(data: ArticlesVideo, ctx: IContextApp, options = {}): Promise<ArticleImgVideo> {
+    public static async insertOne(data: ArticlesVideo, ctx: IContextApp, options = {}) {
         const file = await ArticleImgVideo.uploadImage(data.articleId, data.image, ctx)
         const url = `/images/articles/${file}`
-        return ArticleImgVideo.create({
+        await ArticleImgVideo.create({
             articleId: Number(data.articleId),
             url,
             type: 0
@@ -173,8 +172,8 @@ export default class ArticleImgVideo extends Model {
         if (!fs.existsSync(path.resolve('images'))) {
             await fs.mkdirSync(path.resolve('images/'))
         }
-        if (!fs.existsSync(path.resolve('images/users'))) {
-            await fs.mkdirSync(path.resolve('images/users/'))
+        if (!fs.existsSync(path.resolve('images/articles/'))) {
+            await fs.mkdirSync(path.resolve('images/articles/'))
         }
         if (!fs.existsSync(dirPath)) {
             await fs.mkdirSync(dirPath)
