@@ -35,9 +35,9 @@ export default class AuthResolver {
         }
       })
 
-      !user && throwArgumentValidationError('userName', {}, { message: 'User name or password  not match' })
+      !user && throwArgumentValidationError('userName', {}, { message: 'Korisničko ime ili lozinka se ne podudaraju' })
       const valid = await bcrypt.compare(data.password, user.password)
-      !valid && throwArgumentValidationError('password', {}, { message: 'User name or password not match' })
+      !valid && throwArgumentValidationError('password', {}, { message: 'Korisničko ime ili lozinka se ne podudaraju' })
       createRefreshTokenCookie(user, ctx.res)
       return {
         token: createAccessToken(user),
