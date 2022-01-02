@@ -21,6 +21,8 @@ import Category from './Category.model'
 import User from './User.model'
 import ArticleImgVideo from './ArticleImgVideo.model'
 import {omit as _omit} from 'lodash'
+import path from "path";
+import fs from "fs";
 
 @ObjectType()
 @Table({
@@ -64,7 +66,7 @@ export default class Article extends Model {
     @Column({
       allowNull: false,
       type: DataType.INTEGER.UNSIGNED,
-      field: 'fk_user_id'
+      field: 'fk_user_id',
     })
     userId: number
 
@@ -91,7 +93,7 @@ export default class Article extends Model {
     updatedAt: Date
 
     @Field(type => User)
-    @BelongsTo(() => User)
+    @BelongsTo(() => User, {onDelete: 'CASCADE'})
     user: User
 
     @Field(type => Category)
@@ -144,6 +146,7 @@ export default class Article extends Model {
         }
 
         await instance.destroy(options)
+        await Article.unlinkArticleImage(id)
         await transaction.commit()
         return null
       } catch (e) {
@@ -224,6 +227,22 @@ export default class Article extends Model {
       } catch (e) {
         throw e
       }
+    }
+
+    public static async unlinkArticleImage (articleId: number) {
+        const dirPath = path.resolve(`images/articles/${articleId}/`)
+        if (!fs.existsSync(path.resolve('images'))) {
+            throwArgumentValidationError('id', {}, { message: 'Article image delete failed' })
+        }
+        if (!fs.existsSync(path.resolve('images/articles'))) {
+            throwArgumentValidationError('id', {}, { message: 'Article image delete failed' })
+        }
+        if (!fs.existsSync(dirPath)) {
+            throwArgumentValidationError('id', {}, { message: 'Article image delete failed' })
+        }
+        if (fs.existsSync(dirPath)) {
+            await fs.rmdirSync(dirPath)
+        }
     }
 }
 

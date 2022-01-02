@@ -28,6 +28,7 @@ import {LoginResponseType, LoginType} from '../graphql/types/Login'
 import Sequelize, {FindOptions} from 'sequelize'
 import * as fs from 'fs'
 import {GraphQLUpload} from 'apollo-server-core'
+import Article from "./Article.model";
 
 @ObjectType()
 @Table({
@@ -311,6 +312,36 @@ export default class User extends Model {
                 .on('error', () => reject())
         })
     }
+
+
+    public static async deleteOne (id: number, ctx: IContextApp): TModelResponse<string> {
+        const transaction = await User.sequelize.transaction()
+        const options = { transaction }
+
+        try {
+            const instance = await User.findOne({
+                where: {
+                    id
+                },
+                ...options
+            })
+
+            if (!instance) {
+                throwArgumentValidationError('id', {}, { message: 'User not exists' })
+            }
+
+            await instance.update({
+                status: modelSTATUS.DELETED
+            },options)
+            await transaction.commit()
+            return 'OK'
+        } catch (e) {
+            transaction.rollback()
+            throw e
+        }
+    }
+
+
 }
 
 const BaseResolver = createBaseResolver(User, {
@@ -523,5 +554,14 @@ export class UserResolver extends BaseResolver {
                 @Ctx() ctx: IContextApp) {
         return User.uploadImage(file, userId, ctx)
     }
+
+
+    @UseMiddleware(checkJWT)
+    @Mutation(returns => String, { name: 'deleteUser' })
+    async _deleteUser (@Arg('id', type => Int) id: number,
+                          @Ctx() ctx: IContextApp) {
+        return User.deleteOne(id, ctx)
+    }
+
 }
 
