@@ -235,7 +235,7 @@ const BaseResolver = createBaseResolver(Article, {
 @Resolver()
 export class ArticleResolver extends BaseResolver {
     @UseMiddleware(checkJWT)
-    @Mutation(returns => Article, { name: 'deleteArticle' })
+    @Mutation(returns => Article || null, { name: 'deleteArticle' })
   async _deleteArticle (@Arg('id', type => Int) id: number,
                          @Ctx() ctx: IContextApp) {
     return Article.deleteOne(id, ctx)

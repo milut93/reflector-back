@@ -77,7 +77,8 @@ export default class User extends Model {
     @Column({
         allowNull: false,
         type: DataType.TINYINT,
-        comment: ' 0 - Writer, 1 - Administrator'
+        comment: ' 0 - Writer, 1 - Administrator',
+        defaultValue: 0
     })
     role: number
 
