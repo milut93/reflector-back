@@ -518,7 +518,7 @@ export class UserResolver extends BaseResolver {
     @UseMiddleware(checkJWT)
     @Mutation(returns => String, {name: 'uploadImage'})
     uploadImage(@Arg('file', () => GraphQLUpload) file: UploadType,
-                @Arg('userId', () => GraphQLUpload) userId: number,
+                @Arg('userId', () => Int) userId: number,
                 @Ctx() ctx: IContextApp) {
         return User.uploadImage(file, userId, ctx)
     }
