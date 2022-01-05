@@ -28,7 +28,7 @@ import {LoginResponseType, LoginType} from '../graphql/types/Login'
 import Sequelize, {FindOptions} from 'sequelize'
 import * as fs from 'fs'
 import {GraphQLUpload} from 'apollo-server-core'
-import Article from "./Article.model";
+import {TRANSLATE} from "../constants/translate";
 
 @ObjectType()
 @Table({
@@ -120,7 +120,7 @@ export default class User extends Model {
                     nickname: instance.nickname
                 }
             })
-            user && (!update || user.id !== instance.id) && throwArgumentValidationError('nickname', instance, {message: 'Nickname already used'})
+            user && (!update || user.id !== instance.id) && throwArgumentValidationError('nickname', instance, {message: TRANSLATE.USER_NICKNAME_EXISTS})
         }
 
         user = await User.findOne({
@@ -128,7 +128,7 @@ export default class User extends Model {
                 userName: instance.userName
             }
         })
-        user && (!update || user.id !== instance.id) && throwArgumentValidationError('userName', instance, {message: 'Username already used'})
+        user && (!update || user.id !== instance.id) && throwArgumentValidationError('userName', instance, {message: TRANSLATE.USER_USERNAME_EXISTS})
     }
 
     /** parts for hooks */
@@ -184,22 +184,16 @@ export default class User extends Model {
         }
         const options = {transaction, validate: true}
         try {
-            let user = await User.findOne({
-                where: {
-                    userName: data.userName
-                },
-                ...options
-            })
             /** createdBy and updatedBy need to add in userInsertObject */
-            const dataPassword = data.password ? data.password : User.generateTempPassword()
+            const dataPassword = data.password
             const hash = await bcrypt.hash(dataPassword, 12)
 
-            user = await User.create(_merge({}, {
+            let user = await User.create(_merge({}, {
                 password: hash,
-                ..._omit(data, ['image'])
+                ..._omit(data, ['password','image'])
             }), options)
             if (!user) {
-                throw Error('User not found')
+                throw Error(TRANSLATE.USER_NOT_FOUND)
             }
             if (data.image) {
                 const image = await User.uploadImage(data.image, user.id, ctx)
@@ -219,7 +213,7 @@ export default class User extends Model {
     public static async updateOne(id: number, data: UserType, ctx: IContextApp): TModelResponse<User> {
         const transaction = await User.sequelize.transaction()
         if (!transaction) {
-            throw Error('Transaction can\'t be open')
+            throw Error(TRANSLATE.TRANSACTION_ERROR)
         }
         const options = {transaction, validate: true}
         try {
@@ -230,13 +224,18 @@ export default class User extends Model {
                 ...options
             })
             if (!user) {
-                throw Error('User not found')
+                throw Error(TRANSLATE.USER_NOT_FOUND)
             }
             const newData = data
             if (newData) {
-                user = await user.update({
-                    ..._omit(newData, ['image'])
-                }, options)
+                const _data = {
+                    ..._omit(newData,['id','password','image'])
+                } as any
+                if(newData.password) {
+                    const hash = await bcrypt.hash(data.password, 12)
+                    _data.password = hash
+                }
+                user = await user.update({..._data}, options)
             }
             if (newData.image) {
                 const image = await User.uploadImage(newData.image, user.id, ctx)
@@ -255,7 +254,7 @@ export default class User extends Model {
     public static async changePasswordUser(userId: number, data: UserChangePasswordType, ctx: IContextApp): TModelResponse<User> {
         const transaction = await User.sequelize.transaction()
         if (!transaction) {
-            throw Error('Transaction can\'t be open')
+            throw Error(TRANSLATE.TRANSACTION_ERROR)
         }
         const options = {transaction, validate: true}
         try {
@@ -270,10 +269,10 @@ export default class User extends Model {
             }
             const valid = await bcrypt.compare(data.currentPassword, user.password)
             if (!valid) {
-                throwArgumentValidationError('currentPassword', {}, {message: 'Current password not match'})
+                throwArgumentValidationError('currentPassword', {}, {message: TRANSLATE.USER_PASSWORD_NOT_SAME_CURRENT})
             }
             if (data.currentPassword === data.password) {
-                throwArgumentValidationError('password', {}, {message: 'Password is same with current password.'})
+                throwArgumentValidationError('password', {}, {message: TRANSLATE.USER_PASSWORD_SAME_WITH_CURRENT})
             }
             const hash = await bcrypt.hash(data.password, 12)
             await user.update({
@@ -287,20 +286,22 @@ export default class User extends Model {
         }
     }
 
+
+
     public static async uploadImage(file: UploadType, userId: number, ctx: IContextApp) {
         const {createReadStream, filename} = await file
         const pathName = path.resolve(`images/users/${userId}/${filename}`)
         const dirPath = path.resolve(`images/users/${userId}/`)
-        if (!fs.existsSync(path.resolve('images'))) {
+        if (!(fs.existsSync(path.resolve('images')))) {
             await fs.mkdirSync(path.resolve('images/'))
         }
-        if (!fs.existsSync(path.resolve('images/users'))) {
+        if (!(fs.existsSync(path.resolve('images/users')))) {
             await fs.mkdirSync(path.resolve('images/users/'))
         }
-        if (!fs.existsSync(dirPath)) {
+        if (!(fs.existsSync(dirPath))) {
             await fs.mkdirSync(dirPath)
         }
-        const dir = await fs.readdirSync(dirPath)
+        const dir = fs.readdirSync(dirPath)
         if (dir.length !== 0) {
             await fs.unlinkSync(`${dirPath}/${dir[0]}`)
         }
@@ -314,9 +315,9 @@ export default class User extends Model {
     }
 
 
-    public static async deleteOne (id: number, ctx: IContextApp): TModelResponse<string> {
+    public static async deleteOne(id: number, ctx: IContextApp): TModelResponse<string> {
         const transaction = await User.sequelize.transaction()
-        const options = { transaction }
+        const options = {transaction}
 
         try {
             const instance = await User.findOne({
@@ -327,12 +328,12 @@ export default class User extends Model {
             })
 
             if (!instance) {
-                throwArgumentValidationError('id', {}, { message: 'User not exists' })
+                throwArgumentValidationError('id', {}, {message: TRANSLATE.USER_NOT_FOUND})
             }
 
             await instance.update({
                 status: modelSTATUS.DELETED
-            },options)
+            }, options)
             await transaction.commit()
             return 'OK'
         } catch (e) {
@@ -379,7 +380,7 @@ export class UserResolver extends BaseResolver {
         }
         const valid = await bcrypt.compare(data.currentPassword, user.password)
         if (!valid) {
-            throwArgumentValidationError('currentPassword', {}, {message: 'Current password not match'})
+            throwArgumentValidationError('currentPassword', {}, {message: TRANSLATE.USER_PASSWORD_NOT_SAME_CURRENT})
         }
         const hash = await bcrypt.hash(data.password, 12)
         await user.update({
@@ -479,11 +480,11 @@ export class UserResolver extends BaseResolver {
         }
         const user = await User.findOne(options)
         if (!user) {
-            throwArgumentValidationError('userName', {}, {message: 'User name or password not match'})
+            throwArgumentValidationError('userName', {}, {message: TRANSLATE.USERNAME_PASSWORD_NOT_MATCH})
         }
         const valid = await bcrypt.compare(data.password, user.password)
         if (!valid) {
-            throwArgumentValidationError('userName', {}, {message: 'User name or password not match'})
+            throwArgumentValidationError('userName', {}, {message: TRANSLATE.USERNAME_PASSWORD_NOT_MATCH})
         }
         const token = jsonwebtoken.sign({userId: user.id, nickname: user.nickname},
             configuration.JWT.KEY,
@@ -557,9 +558,9 @@ export class UserResolver extends BaseResolver {
 
 
     @UseMiddleware(checkJWT)
-    @Mutation(returns => String, { name: 'deleteUser' })
-    async _deleteUser (@Arg('id', type => Int) id: number,
-                          @Ctx() ctx: IContextApp) {
+    @Mutation(returns => String, {name: 'deleteUser'})
+    async _deleteUser(@Arg('id', type => Int) id: number,
+                      @Ctx() ctx: IContextApp) {
         return User.deleteOne(id, ctx)
     }
 
