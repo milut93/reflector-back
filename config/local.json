@@ -1,7 +1,7 @@
 {
     "sequelizeSettings": {
       "local": {
-        "username": "reflector",
+        "username": "root",
         "password": "temp123$",
         "database": "reflector",
         "host": "localhost",
@@ -12,7 +12,7 @@
         }
       },
       "test": {
-        "username": "reflector",
+        "username": "root",
         "password": "temp123$",
         "database": "reflector-test",
         "host": "localhost",
