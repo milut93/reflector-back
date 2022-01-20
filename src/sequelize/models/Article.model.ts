@@ -129,7 +129,7 @@ export default class Article extends Model {
       })
     }
 
-    public static async deleteOne (id: number, ctx: IContextApp): TModelResponse<Article> {
+    public static async deleteOne (id: number, ctx: IContextApp): Promise<string> {
       const transaction = await Article.sequelize.transaction()
       const options = { transaction }
 
@@ -148,7 +148,7 @@ export default class Article extends Model {
         await instance.destroy(options)
         await Article.unlinkArticleImage(id)
         await transaction.commit()
-        return null
+        return 'OK'
       } catch (e) {
         transaction.rollback()
         throw e
@@ -240,6 +240,11 @@ export default class Article extends Model {
         if (!fs.existsSync(dirPath)) {
             throwArgumentValidationError('id', {}, { message: 'Article image delete failed' })
         }
+        const dir = await fs.readdirSync(dirPath)
+        if (dir.length !== 0) {
+           const promise = dir.map(d=> fs.unlinkSync(`${dirPath}/${d}`))
+            await Promise.all(promise)
+        }
         if (fs.existsSync(dirPath)) {
             await fs.rmdirSync(dirPath)
         }
@@ -254,7 +259,7 @@ const BaseResolver = createBaseResolver(Article, {
 @Resolver()
 export class ArticleResolver extends BaseResolver {
     @UseMiddleware(checkJWT)
-    @Mutation(returns => Article || null, { name: 'deleteArticle' })
+    @Mutation(returns => String, { name: 'deleteArticle' })
   async _deleteArticle (@Arg('id', type => Int) id: number,
                          @Ctx() ctx: IContextApp) {
     return Article.deleteOne(id, ctx)
