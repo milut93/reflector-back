@@ -20,7 +20,9 @@ import Article from "./Article.model";
 
 @ObjectType()
 @Table({
-  tableName: 'category'
+  tableName: 'category',
+    charset: 'utf8',
+    collate: 'utf8_general_ci'
 })
 
 export default class Category extends Model {

@@ -34,7 +34,9 @@ export class ArticlesVideo {
 
 @ObjectType()
 @Table({
-    tableName: 'article_img_video'
+    tableName: 'article_img_video',
+    charset: 'utf8',
+    collate: 'utf8_general_ci'
 })
 
 export default class ArticleImgVideo extends Model {

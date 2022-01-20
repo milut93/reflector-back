@@ -32,7 +32,9 @@ import {TRANSLATE} from "../constants/translate";
 
 @ObjectType()
 @Table({
-    tableName: 'user'
+    tableName: 'user',
+    charset: 'utf8',
+    collate: 'utf8_general_ci'
 })
 
 export default class User extends Model {

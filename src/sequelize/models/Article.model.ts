@@ -26,7 +26,9 @@ import fs from "fs";
 
 @ObjectType()
 @Table({
-  tableName: 'articles'
+  tableName: 'articles',
+  charset: 'utf8',
+  collate: 'utf8_general_ci'
 })
 
 export default class Article extends Model {
