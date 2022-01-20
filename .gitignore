@@ -108,3 +108,5 @@ dist
 
 .eslintrc.js
 .idea
+
+/config/local.json
