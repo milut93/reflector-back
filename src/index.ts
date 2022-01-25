@@ -61,7 +61,7 @@ app.get('/refresh_token', async (req, resp) => {
 });
 
 (async () => {
-  await initSequelize('test', false)
+  await initSequelize('test', true)
   const server = createApolloServer()
   const PORT = configuration.PORT || 4000
   server.applyMiddleware({ app, path: '/graphql', cors: corsOptions })
