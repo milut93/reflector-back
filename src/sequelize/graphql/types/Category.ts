@@ -19,6 +19,12 @@ export class ArticlesType {
     @Field({ nullable: true })
     content: string
 
+    @Field({ nullable: true })
+    link: string
+
+    @Field(type => Int,{ nullable: true })
+    useLink: number
+
     @Field(type => GraphQLUpload, { nullable: true })
     image: UploadType
 

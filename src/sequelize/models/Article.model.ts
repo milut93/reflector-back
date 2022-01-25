@@ -78,6 +78,22 @@ export default class Article extends Model {
     })
     views: number
 
+    @Field({nullable: true})
+    @Column({
+        allowNull: false,
+        type: DataType.TINYINT,
+        defaultValue: 0,
+        field: 'use_link',
+    })
+    useLink: number
+
+    @Field({nullable: true})
+    @Column({
+        allowNull: false,
+        type: DataType.STRING(512)
+    })
+    link: string
+
     @Field()
     @CreatedAt
     @Column({
