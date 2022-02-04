@@ -1,15 +1,14 @@
 {
   "sequelizeSettings": {
     "local": {
-      "username": "reflector",
+      "username": "root",
       "password": "temp123$",
       "database": "reflector",
       "host": "localhost",
       "logging": true,
       "dialect": "mysql",
       "dialectOptions": {
-        "decimalNumbers": true,
-        "collate": "utf8_general_ci"
+        "decimalNumbers": true
       },
       "define": {
         "freezeTableName": true,
@@ -20,14 +19,13 @@
       }
     },
     "test": {
-      "username": "reflector",
+      "username": "root",
       "password": "temp123$",
       "database": "reflector-test",
       "host": "localhost",
       "dialect": "mysql",
       "dialectOptions": {
-        "decimalNumbers": true,
-        "collate": "utf8_general_ci"
+        "decimalNumbers": true
       },
       "logging": false,
       "define": {

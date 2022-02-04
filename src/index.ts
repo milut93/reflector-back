@@ -12,6 +12,7 @@ import createApolloServer from 'apolloServer'
 import { createTestData } from 'test/Init'
 import NodeRSA from 'node-rsa'
 import fs from 'fs'
+import {encryptData} from "./mobile/middleware";
 
 const app = express()
 app.use(bodyParser.json({ limit: '50mb' }))
@@ -65,25 +66,20 @@ app.get('/refresh_token', async (req, resp) => {
 
 const generateNodeRSAKeys = async ()=> {
   try {
-
     const key = new NodeRSA()
-    const pairs = key.generateKeyPair();
+    const pairs = await key.generateKeyPair();
     const publicKey = pairs.exportKey('pkcs8-public-pem')
     const privateKey = pairs.exportKey('pkcs1-private-pem')
-    const path = resolve('keys/pairs.json')
+    const path = resolve('src/keys/pairs.json')
     await fs.writeFileSync(path,JSON.stringify({
       private: privateKey,
       public: publicKey
     }), {encoding:'utf-8'})
-  }catch (e) {
-
-
-  }
+  }catch (e) { }
 }
 
 
 (async () => {
-  await generateNodeRSAKeys()
   await initSequelize('test', false)
   const server = createApolloServer()
   const PORT = configuration.PORT || 4000

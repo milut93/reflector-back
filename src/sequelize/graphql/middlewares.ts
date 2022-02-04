@@ -20,7 +20,7 @@ const createTestData = () => {
 }
 
 const _checkJWT = (key, tokenVar): MiddlewareFn<IContextApp> => async ({ root, args, context, info }, next) => {
-  const token = get(context, tokenVar) || ''
+   const token = get(context, tokenVar) || ''
 
   if (configuration.TEST) {
     context.jwtData = { ...createTestData() }
