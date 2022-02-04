@@ -46,6 +46,10 @@ const _checkJWT = (key, tokenVar): MiddlewareFn<IContextApp> => async ({ root, a
   return next()
 }
 
+const mobileApp = (tokenVar):MiddlewareFn<IContextApp> => async ({root, args, context, info }, next) => {
+
+}
+
 export const checkJWT: MiddlewareFn<IContextApp> = _checkJWT(configuration.JWT.KEY, 'accessToken')
 export const checkJWTRefresh: MiddlewareFn<IContextApp> = _checkJWT(configuration.JWT.KEY_REFRESH, 'refreshToken')
 

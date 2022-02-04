@@ -4,12 +4,14 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import configuration from '../config/index'
 import cookieParser from 'cookie-parser'
-import path from 'path'
+import path, {resolve} from 'path'
 import { createAccessToken, createRefreshTokenCookie, verifyRefreshToken } from 'sequelize/graphql/resolvers/Auth'
 import { User } from 'sequelize/models'
 import { initSequelize } from 'sequelize/sequelize'
 import createApolloServer from 'apolloServer'
 import { createTestData } from 'test/Init'
+import NodeRSA from 'node-rsa'
+import fs from 'fs'
 
 const app = express()
 app.use(bodyParser.json({ limit: '50mb' }))
@@ -60,14 +62,34 @@ app.get('/refresh_token', async (req, resp) => {
   return resp.send({ ok: true, token: createAccessToken(user) })
 });
 
+
+const generateNodeRSAKeys = async ()=> {
+  try {
+
+    const key = new NodeRSA()
+    const pairs = key.generateKeyPair();
+    const publicKey = pairs.exportKey('pkcs8-public-pem')
+    const privateKey = pairs.exportKey('pkcs1-private-pem')
+    const path = resolve('keys/pairs.json')
+    await fs.writeFileSync(path,JSON.stringify({
+      private: privateKey,
+      public: publicKey
+    }), {encoding:'utf-8'})
+  }catch (e) {
+
+
+  }
+}
+
+
 (async () => {
+  await generateNodeRSAKeys()
   await initSequelize('test', false)
   const server = createApolloServer()
   const PORT = configuration.PORT || 4000
   server.applyMiddleware({ app, path: '/graphql', cors: corsOptions })
   app.listen({ port: PORT }, () => {
     console.log(`Apollo Server reflector on http://localhost:${PORT}/graphql`)
-  })
-
+  });
   await createTestData()
 })()
