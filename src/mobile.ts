@@ -149,6 +149,23 @@ app.get('/articles/:categoryId', authMobile, async (req, resp,next) => {
 });
 
 
+app.get('/categories', authMobile, async (req, resp,next) => {
+    try {
+        const categories = await Category.findAll()
+        if(!categories) {
+            resp.status(400).send('Categories not exists');
+            return
+        }
+        resp.status(200).json({
+            data: categories
+        })
+        return
+    } catch (e) {
+        next(e)
+    }
+});
+
+
 
 (async () => {
     await initSequelize('test', false)
