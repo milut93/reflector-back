@@ -11,6 +11,7 @@ import Category from "./sequelize/models/Category.model";
 import User from "./sequelize/models/User.model";
 import ArticleImgVideo from "./sequelize/models/ArticleImgVideo.model";
 import authMobile from "./mobile/middleware";
+import fs from "fs";
 
 const app = express()
 app.use(bodyParser.json({limit: '50mb'}))
@@ -20,6 +21,13 @@ const dir = path.join(__dirname, '../images')
 
 app.use(express.static(dir))
 
+app.get('/images/users/:id', authMobile, async (req, resp) => {
+    const dirPath = path.join(__dirname, `../${req.originalUrl}`)
+    const dir = fs.readdirSync(dirPath)
+    if(!dir || !dir.length) throw Error('Not exists user image')
+    const _img = `${dirPath}/${dir[0]}`
+    resp.sendFile(_img)
+});
 
 app.get('/images/articles/:id/:file', authMobile, async (req, resp) => {
     resp.sendFile(path.join(__dirname, `../${req.originalUrl}`))
