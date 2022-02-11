@@ -26,7 +26,20 @@ app.get('/images/users/:id', authMobile, async (req, resp) => {
     const dir = fs.readdirSync(dirPath)
     if(!dir || !dir.length) throw Error('Not exists user image')
     const _img = `${dirPath}/${dir[0]}`
-    resp.send(Buffer.from(_img).toString('base64'))
+    const ext= dir[0].split('.')
+    let baseStartStr=  ''
+    switch(ext[1]) {
+        case 'png':
+            baseStartStr = 'data:image/png;base64,'
+            break
+        case 'jpeg':
+            baseStartStr = 'data:image/jpeg;base64,'
+            break
+        case 'jpg':
+            baseStartStr = 'data:image/jpg;base64,'
+            break
+    }
+    resp.send(`${baseStartStr}${Buffer.from(_img).toString('base64')}`)
 });
 
 app.get('/images/articles/:id/:file', authMobile, async (req, resp) => {
