@@ -70,6 +70,45 @@ app.get('/articles', authMobile, async (req, resp, next) => {
     }
 });
 
+
+app.get('/users', authMobile, async (req, resp, next) => {
+    try {
+        const users = await User.findAll()
+        resp.status(200).json({
+            data: users
+        })
+        return
+    } catch (e) {
+        next(e)
+    }
+});
+
+
+app.get('/user/:id', authMobile, async (req, resp,next) => {
+    try {
+        const id = req.params.id;
+        if(!id) {
+            resp.status(400).send('Bad request');
+            return
+        }
+        const user = await User.findOne({
+            where: {
+                id
+            }
+        })
+        if(!user) {
+            resp.status(400).send('User not exists');
+            return
+        }
+        resp.status(200).json({
+            data: user
+        })
+        return
+    } catch (e) {
+        next(e)
+    }
+});
+
 app.get('/article/:id', authMobile, async (req, resp,next) => {
     try {
         const id = req.params.id;
