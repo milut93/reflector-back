@@ -26,7 +26,9 @@ app.get('/images/users/:id', authMobile, async (req, resp) => {
     const dir = fs.readdirSync(dirPath)
     if(!dir || !dir.length) throw Error('Not exists user image')
     const _img = `${dirPath}/${dir[0]}`
-    resp.sendFile(_img)
+    resp.send({
+        img: _img
+    })
 });
 
 app.get('/images/articles/:id/:file', authMobile, async (req, resp) => {
