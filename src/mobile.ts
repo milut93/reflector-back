@@ -153,7 +153,7 @@ app.get('/article/:id', authMobile, async (req, resp,next) => {
 
 
 
-app.get('/articles/:categoryId', authMobile, async (req, resp,next) => {
+app.get('/articles-category/:categoryId', authMobile, async (req, resp,next) => {
     try {
         const categoryId = req.params.categoryId;
         if(!categoryId) {
@@ -163,6 +163,50 @@ app.get('/articles/:categoryId', authMobile, async (req, resp,next) => {
         const articles = await Article.findAll({
             where: {
                 categoryId
+            },
+            include: [
+                {
+                    model: Category,
+                    as: 'category',
+                    required: false
+                },
+                {
+                    model: User,
+                    as: 'user',
+                    required: true
+                },
+                {
+                    model: ArticleImgVideo,
+                    as: 'articleImgVideo',
+                    required: false
+                }
+            ]
+        })
+        if(!articles) {
+            resp.status(400).send('Articles not exists');
+            return
+        }
+        resp.status(200).json({
+            data: articles
+        })
+        return
+    } catch (e) {
+        next(e)
+    }
+});
+
+
+
+app.get('/articles-user/:userId', authMobile, async (req, resp,next) => {
+    try {
+        const userId = req.params.userId;
+        if(!userId) {
+            resp.status(400).send('Bad request');
+            return
+        }
+        const articles = await Article.findAll({
+            where: {
+                userId
             },
             include: [
                 {
@@ -212,6 +256,113 @@ app.get('/categories', authMobile, async (req, resp,next) => {
     }
 });
 
+
+app.get('/articles-video', authMobile, async (req, resp,next) => {
+    try {
+        const articles = await Article.findAll({
+            include: [
+                {
+                    model: ArticleImgVideo,
+                    as: 'articleImgVideo',
+                    required: true,
+                    where: {
+                        type: 1
+                    }
+                },
+                {
+                    model: Category,
+                    as: 'category',
+                    required: false
+                },
+                {
+                    model: User,
+                    as: 'user',
+                    required: true
+                }
+            ]
+        })
+        if(!articles) {
+            resp.status(400).send('Articles not exists');
+            return
+        }
+        resp.status(200).json({
+            data: articles
+        })
+        return
+    } catch (e) {
+        next(e)
+    }
+});
+
+app.get('/articles-views', authMobile, async (req, resp,next) => {
+    try {
+        const articles = await Article.findAll({
+            include: [
+                {
+                    model: ArticleImgVideo,
+                    as: 'articleImgVideo',
+                    required: false,
+                    where: {
+                        type: 1
+                    }
+                },
+                {
+                    model: Category,
+                    as: 'category',
+                    required: false
+                },
+                {
+                    model: User,
+                    as: 'user',
+                    required: true
+                }
+            ],
+            order: [
+                ['views','DESC']
+            ]
+        })
+        if(!articles) {
+            resp.status(400).send('Articles not exists');
+            return
+        }
+        resp.status(200).json({
+            data: articles
+        })
+        return
+    } catch (e) {
+        next(e)
+    }
+});
+
+
+app.post('/article-view',  authMobile, async (req, resp,next) => {
+    try {
+        const {articleId} = req.body
+        if(!articleId) {
+            resp.status(400).send('Bad request');
+            return
+        }
+        let article = await Article.selectOne(articleId)
+        if(!article) {
+            resp.status(400).send('Article not exists');
+            return
+        }
+        await Article.update({
+            views: article.views+1
+        }, {
+            where: {
+                id: article.id
+            }
+        })
+        article = await Article.selectOne(article.id)
+        resp.status(200).json({
+            data: article
+        })
+        return
+    } catch (e) {
+        next(e)
+    }
+});
 
 
 (async () => {
