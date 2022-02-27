@@ -17,6 +17,9 @@ export class ArticlesType {
     header: string
 
     @Field({ nullable: true })
+    subHeader: string
+
+    @Field({ nullable: true })
     content: string
 
     @Field({ nullable: true })

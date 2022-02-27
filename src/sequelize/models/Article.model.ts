@@ -47,6 +47,14 @@ export default class Article extends Model {
     })
     header: string
 
+    @Field({nullable: true})
+    @Column({
+        allowNull: true,
+        type: DataType.STRING(512),
+        field: 'sub_header'
+    })
+    subHeader: string
+
     @Field()
     @Column({
       allowNull: false,
@@ -91,7 +99,7 @@ export default class Article extends Model {
 
     @Field({nullable: true})
     @Column({
-        allowNull: false,
+        allowNull: true,
         type: DataType.STRING(512)
     })
     link: string

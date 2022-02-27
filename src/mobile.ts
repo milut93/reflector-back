@@ -12,6 +12,7 @@ import User from "./sequelize/models/User.model";
 import ArticleImgVideo from "./sequelize/models/ArticleImgVideo.model";
 import authMobile from "./mobile/middleware";
 import fs from "fs";
+import {requestOptions} from "./sequelize/graphql/FilterRequest";
 
 const app = express()
 app.use(bodyParser.json({limit: '50mb'}))
@@ -40,8 +41,11 @@ app.use((error, req, res, next) => {
     res.status(status).send({message: message, result: data})
 })
 
-app.get('/articles', authMobile, async (req, resp, next) => {
+app.post('/articles', authMobile, async (req, resp, next) => {
     try {
+
+        const _data = req.body
+        const options = requestOptions(_data)
         const articles = await Article.findAll({
             include: [
                 {
@@ -59,7 +63,8 @@ app.get('/articles', authMobile, async (req, resp, next) => {
                     as: 'articleImgVideo',
                     required: false
                 }
-            ]
+            ],
+            ...options,
         })
         resp.status(200).json({
             data: articles
