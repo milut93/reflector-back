@@ -271,7 +271,7 @@ app.get('/articles-video', authMobile, async (req, resp,next) => {
                     as: 'articleImgVideo',
                     required: true,
                     where: {
-                        type: 1
+                       useLink: 1
                     }
                 },
                 {
