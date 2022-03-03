@@ -265,14 +265,14 @@ app.get('/categories', authMobile, async (req, resp,next) => {
 app.get('/articles-video', authMobile, async (req, resp,next) => {
     try {
         const articles = await Article.findAll({
+            where: {
+                useLink: 1
+            },
             include: [
                 {
                     model: ArticleImgVideo,
                     as: 'articleImgVideo',
-                    required: true,
-                    where: {
-                       useLink: 1
-                    }
+                    required: false
                 },
                 {
                     model: Category,
