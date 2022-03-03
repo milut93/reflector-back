@@ -272,7 +272,7 @@ app.get('/articles-video', authMobile, async (req, resp,next) => {
                 {
                     model: ArticleImgVideo,
                     as: 'articleImgVideo',
-                    required: true
+                    required: false
                 },
                 {
                     model: Category,
