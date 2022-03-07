@@ -139,20 +139,22 @@ export default class ArticleImgVideo extends Model {
             ..._omit(data, ['image', 'articleId'])
         }
         if (data.image) {
-            const file = await ArticleImgVideo.uploadImage(data.articleId, data.image, ctx)
+            let file = await ArticleImgVideo.uploadImage(data.articleId, data.image, ctx) as string
+            file = file.replace(/\s+/gm, '-')
             const url = `/images/articles/${file}`
 
-          await instance.update({
+            await instance.update({
                 ..._data,
                 url,
                 type: 0
-          }, options)
+            }, options)
         }
         await instance.update(data, options)
     }
 
     public static async insertOne(data: ArticlesVideo, ctx: IContextApp, options = {}) {
-        const file = await ArticleImgVideo.uploadImage(data.articleId, data.image, ctx)
+        let file = await ArticleImgVideo.uploadImage(data.articleId, data.image, ctx)  as string
+        file = file.replace(/\s+/gm, '-')
         const url = `/images/articles/${file}`
         await ArticleImgVideo.create({
             articleId: Number(data.articleId),
@@ -169,7 +171,8 @@ export default class ArticleImgVideo extends Model {
 
     public static async uploadImage(articleId: number, file: UploadType, ctx: IContextApp) {
         const {createReadStream, filename} = await file
-        const pathName = path.resolve(`images/articles/${articleId}/${filename}`)
+        let _filename = filename.replace(/\s+/gm,'-')
+        const pathName = path.resolve(`images/articles/${articleId}/${_filename}`)
         const dirPath = path.resolve(`images/articles/${articleId}/`)
         if (!fs.existsSync(path.resolve('images'))) {
             await fs.mkdirSync(path.resolve('images/'))
@@ -187,7 +190,7 @@ export default class ArticleImgVideo extends Model {
         return new Promise((resolve, reject) => {
             createReadStream()
                 .pipe(fs.createWriteStream(pathName))
-                .on('finish', () => resolve(`${articleId}/${filename}`))
+                .on('finish', () => resolve(`${articleId}/${_filename}`))
                 // eslint-disable-next-line prefer-promise-reject-errors
                 .on('error', () => reject())
         })
