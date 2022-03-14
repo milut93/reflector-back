@@ -43,7 +43,7 @@
     "KEY": "f98dsfjkjfidskjnafd8aufij43kn45f4d654af8a5f448345438545w1",
     "KEY_REFRESH": "jfdusyijfdisajfkewjufioejdkshafuiodjafkldsjhfiodjafkldsajhfdakjnfu498i548fj",
     "KEY_TEMPORARY": "kjfdlsjudjaaijgdajaj4398t9kgmrljvfosdamgfrwmgfljvhdposafgndsagmnflkanfdskj",
-    "KEY_EXPIRE": "5s",
+    "KEY_EXPIRE": "20m",
     "KEY_TEMPORARY_EXPIRE": "20s",
     "KEY_REFRESH_EXPIRE": "5d",
     "COOKIE": false
@@ -62,7 +62,7 @@
     "whiteListEndPoints": [
     ]
   },
-  "TEST": true,
+  "TEST": false,
   "PORT": 4000,
   "MOBILE_PORT":8888
 }
