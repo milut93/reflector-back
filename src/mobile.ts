@@ -13,6 +13,7 @@ import ArticleImgVideo from "./sequelize/models/ArticleImgVideo.model";
 import authMobile from "./mobile/middleware";
 import fs from "fs";
 import {requestOptions} from "./sequelize/graphql/FilterRequest";
+import {modelSTATUS} from "./sequelize/models/validations";
 
 const app = express()
 app.use(bodyParser.json({limit: '50mb'}))
@@ -78,7 +79,11 @@ app.post('/articles', authMobile, async (req, resp, next) => {
 
 app.get('/users', authMobile, async (req, resp, next) => {
     try {
-        const users = await User.findAll()
+        const users = await User.findAll({
+            where: {
+                status:  modelSTATUS.ACTIVE
+            }
+        })
         resp.status(200).json({
             data: users
         })
