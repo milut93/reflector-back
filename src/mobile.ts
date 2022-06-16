@@ -14,6 +14,7 @@ import authMobile from "./mobile/middleware";
 import fs from "fs";
 import {requestOptions} from "./sequelize/graphql/FilterRequest";
 import {modelSTATUS} from "./sequelize/models/validations";
+import {cloneDeep} from "lodash";
 
 const app = express()
 app.use(bodyParser.json({limit: '50mb'}))
@@ -46,8 +47,7 @@ app.post('/articles', authMobile, async (req, resp, next) => {
     try {
 
         const _data = req.body
-        const options = requestOptions(_data)
-        const articles = await Article.findAll({
+        const rrs = {
             include: [
                 {
                     model: Category,
@@ -64,11 +64,19 @@ app.post('/articles', authMobile, async (req, resp, next) => {
                     as: 'articleImgVideo',
                     required: false
                 }
-            ],
-            ...options,
-        })
+            ]
+        }
+        const options = requestOptions(_data)
+        const opp = {
+            ...rrs,
+            ...options
+        }
+        const promises = await Promise.all([Article.findAll(opp),Article.count(cloneDeep(opp))])
         resp.status(200).json({
-            data: articles
+            data: {
+                total: promises[1] || 0,
+                rows: promises[0]
+            }
         })
         return
     } catch (e) {
