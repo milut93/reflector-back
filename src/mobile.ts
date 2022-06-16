@@ -68,8 +68,8 @@ app.post('/articles', authMobile, async (req, resp, next) => {
         }
         const options = requestOptions(_data)
         const opp = {
+            ...options,
             ...rrs,
-            ...options
         }
         const promises = await Promise.all([Article.findAll(opp),Article.count(cloneDeep(opp))])
         resp.status(200).json({
