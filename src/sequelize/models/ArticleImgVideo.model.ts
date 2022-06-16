@@ -143,11 +143,11 @@ export default class ArticleImgVideo extends Model {
             file = file.replace(/\s+/gm, '-')
             const url = `/images/articles/${file}`
 
-          await instance.update({
+            await instance.update({
                 ..._data,
                 url,
                 type: 0
-          }, options)
+            }, options)
         }
         await instance.update(data, options)
     }
