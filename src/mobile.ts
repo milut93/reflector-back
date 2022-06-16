@@ -3,7 +3,6 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import configuration from '../config/index'
 import {initSequelize} from './sequelize/sequelize'
-import createApolloServer from './apolloServer'
 import cookieParser from 'cookie-parser'
 import path from 'path'
 import Article from "./sequelize/models/Article.model";
@@ -14,7 +13,7 @@ import authMobile from "./mobile/middleware";
 import fs from "fs";
 import {requestOptions} from "./sequelize/graphql/FilterRequest";
 import {modelSTATUS} from "./sequelize/models/validations";
-import {cloneDeep} from "lodash";
+import {cloneDeep, omit} from "lodash";
 
 const app = express()
 app.use(bodyParser.json({limit: '50mb'}))
@@ -27,7 +26,7 @@ app.use(express.static(dir))
 app.get('/images/users/:id', authMobile, async (req, resp) => {
     const dirPath = path.join(__dirname, `../${req.originalUrl}`)
     const dir = fs.readdirSync(dirPath)
-    if(!dir || !dir.length) throw Error('Not exists user image')
+    if (!dir || !dir.length) throw Error('Not exists user image')
     const _img = `${dirPath}/${dir[0]}`
     resp.sendFile(_img)
 });
@@ -45,7 +44,6 @@ app.use((error, req, res, next) => {
 
 app.post('/articles', authMobile, async (req, resp, next) => {
     try {
-
         const _data = req.body
         const rrs = {
             include: [
@@ -71,7 +69,7 @@ app.post('/articles', authMobile, async (req, resp, next) => {
             ...options,
             ...rrs,
         }
-        const promises = await Promise.all([Article.findAll(opp),Article.count(cloneDeep(opp))])
+        const promises = await Promise.all([Article.findAll(opp), Article.count(cloneDeep(opp))])
         resp.status(200).json({
             data: {
                 total: promises[1] || 0,
@@ -89,7 +87,7 @@ app.get('/users', authMobile, async (req, resp, next) => {
     try {
         const users = await User.findAll({
             where: {
-                status:  modelSTATUS.ACTIVE
+                status: modelSTATUS.ACTIVE
             }
         })
         resp.status(200).json({
@@ -102,10 +100,10 @@ app.get('/users', authMobile, async (req, resp, next) => {
 });
 
 
-app.get('/user/:id', authMobile, async (req, resp,next) => {
+app.get('/user/:id', authMobile, async (req, resp, next) => {
     try {
         const id = req.params.id;
-        if(!id) {
+        if (!id) {
             resp.status(400).send('Bad request');
             return
         }
@@ -114,7 +112,7 @@ app.get('/user/:id', authMobile, async (req, resp,next) => {
                 id
             }
         })
-        if(!user) {
+        if (!user) {
             resp.status(400).send('User not exists');
             return
         }
@@ -127,10 +125,10 @@ app.get('/user/:id', authMobile, async (req, resp,next) => {
     }
 });
 
-app.get('/article/:id', authMobile, async (req, resp,next) => {
+app.get('/article/:id', authMobile, async (req, resp, next) => {
     try {
         const id = req.params.id;
-        if(!id) {
+        if (!id) {
             resp.status(400).send('Bad request');
             return
         }
@@ -156,7 +154,7 @@ app.get('/article/:id', authMobile, async (req, resp,next) => {
                 }
             ]
         })
-        if(!article) {
+        if (!article) {
             resp.status(400).send('Article not exists');
             return
         }
@@ -170,15 +168,15 @@ app.get('/article/:id', authMobile, async (req, resp,next) => {
 });
 
 
-
-app.get('/articles-category/:categoryId', authMobile, async (req, resp,next) => {
+app.get('/articles-category/:categoryId', authMobile, async (req, resp, next) => {
     try {
-        const categoryId = req.params.categoryId;
-        if(!categoryId) {
+        const _data = req.body
+        const categoryId = _data?.categoryId
+        if (!categoryId) {
             resp.status(400).send('Bad request');
             return
         }
-        const articles = await Article.findAll({
+        const rrs = {
             where: {
                 categoryId
             },
@@ -199,13 +197,19 @@ app.get('/articles-category/:categoryId', authMobile, async (req, resp,next) => 
                     required: false
                 }
             ]
-        })
-        if(!articles) {
-            resp.status(400).send('Articles not exists');
-            return
         }
+        const opt = omit(_data, ['categoryId']) as any
+        const options = requestOptions(opt)
+        const opp = {
+            ...options,
+            ...rrs,
+        }
+        const promises = await Promise.all([Article.findAll(opp), Article.count(cloneDeep(opp))])
         resp.status(200).json({
-            data: articles
+            data: {
+                total: promises[1] || 0,
+                rows: promises[0]
+            }
         })
         return
     } catch (e) {
@@ -214,11 +218,10 @@ app.get('/articles-category/:categoryId', authMobile, async (req, resp,next) => 
 });
 
 
-
-app.get('/articles-user/:userId', authMobile, async (req, resp,next) => {
+app.get('/articles-user/:userId', authMobile, async (req, resp, next) => {
     try {
         const userId = req.params.userId;
-        if(!userId) {
+        if (!userId) {
             resp.status(400).send('Bad request');
             return
         }
@@ -244,7 +247,7 @@ app.get('/articles-user/:userId', authMobile, async (req, resp,next) => {
                 }
             ]
         })
-        if(!articles) {
+        if (!articles) {
             resp.status(400).send('Articles not exists');
             return
         }
@@ -258,10 +261,10 @@ app.get('/articles-user/:userId', authMobile, async (req, resp,next) => {
 });
 
 
-app.get('/categories', authMobile, async (req, resp,next) => {
+app.get('/categories', authMobile, async (req, resp, next) => {
     try {
         const categories = await Category.findAll()
-        if(!categories) {
+        if (!categories) {
             resp.status(400).send('Categories not exists');
             return
         }
@@ -275,9 +278,15 @@ app.get('/categories', authMobile, async (req, resp,next) => {
 });
 
 
-app.get('/articles-video', authMobile, async (req, resp,next) => {
+app.get('/articles-video', authMobile, async (req, resp, next) => {
     try {
-        const articles = await Article.findAll({
+
+        const opt = requestOptions({
+            ...req.body,
+        } as any)
+
+        const options = {
+            ...opt,
             where: {
                 useLink: 1
             },
@@ -298,13 +307,14 @@ app.get('/articles-video', authMobile, async (req, resp,next) => {
                     required: true
                 }
             ]
-        })
-        if(!articles) {
-            resp.status(400).send('Articles not exists');
-            return
         }
+
+        const promises = await Promise.all([Article.findAll(options), Article.count(cloneDeep(options))])
         resp.status(200).json({
-            data: articles
+            data: {
+                total: promises[1] || 0,
+                rows: promises[0]
+            }
         })
         return
     } catch (e) {
@@ -312,7 +322,7 @@ app.get('/articles-video', authMobile, async (req, resp,next) => {
     }
 });
 
-app.get('/articles-views', authMobile, async (req, resp,next) => {
+app.get('/articles-views', authMobile, async (req, resp, next) => {
     try {
         const articles = await Article.findAll({
             include: [
@@ -336,10 +346,10 @@ app.get('/articles-views', authMobile, async (req, resp,next) => {
                 }
             ],
             order: [
-                ['views','DESC']
+                ['views', 'DESC']
             ]
         })
-        if(!articles) {
+        if (!articles) {
             resp.status(400).send('Articles not exists');
             return
         }
@@ -353,20 +363,20 @@ app.get('/articles-views', authMobile, async (req, resp,next) => {
 });
 
 
-app.post('/article-view',  authMobile, async (req, resp,next) => {
+app.post('/article-view', authMobile, async (req, resp, next) => {
     try {
         const {articleId} = req.body
-        if(!articleId) {
+        if (!articleId) {
             resp.status(400).send('Bad request');
             return
         }
         let article = await Article.selectOne(articleId)
-        if(!article) {
+        if (!article) {
             resp.status(400).send('Article not exists');
             return
         }
         await Article.update({
-            views: article.views+1
+            views: article.views + 1
         }, {
             where: {
                 id: article.id
