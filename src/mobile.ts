@@ -168,7 +168,7 @@ app.get('/article/:id', authMobile, async (req, resp, next) => {
 });
 
 
-app.get('/articles-category/:categoryId', authMobile, async (req, resp, next) => {
+app.get('/articles-category', authMobile, async (req, resp, next) => {
     try {
         const _data = req.body
         const categoryId = _data?.categoryId
