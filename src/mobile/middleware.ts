@@ -51,7 +51,6 @@ const decryptCode = (code: string) => {
 
 const authMobile = async (req, res, next) => {
     try {
-        console.log(req.headers)
         const mobileToken = req.headers?.mobileToken || req.headers?.mobiletoken ;
         if (!mobileToken){
             res.status(403).send("Access denied.");

@@ -33,7 +33,7 @@ const _checkJWT = (key, tokenVar): MiddlewareFn<IContextApp> => async ({ root, a
   }
 
   try {
-    const data = jsonwebtoken.verify(token, key)
+    const data = jsonwebtoken.verify(token, key) as any
     context.jwtData = { ...data }
     Object.defineProperty(context, 'userId', {
       get () {

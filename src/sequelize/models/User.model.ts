@@ -448,7 +448,7 @@ export class UserResolver extends BaseResolver {
             configuration.JWT.KEY_REFRESH,
             {expiresIn: configuration.JWT.KEY_REFRESH_EXPIRE})
 
-        const decod = jsonwebtoken.decode(token)
+        const decod = jsonwebtoken.decode(token) as any
         return {
             token,
             refresh,
@@ -494,7 +494,7 @@ export class UserResolver extends BaseResolver {
         const refresh = jsonwebtoken.sign({userId: user.id, nickname: user.nickname},
             configuration.JWT.KEY_REFRESH,
             {expiresIn: configuration.JWT.KEY_REFRESH_EXPIRE})
-        const decod = jsonwebtoken.decode(token)
+        const decod = jsonwebtoken.decode(token) as any
         return {
             token,
             refresh,

@@ -218,13 +218,14 @@ app.post('/articles-category', authMobile, async (req, resp, next) => {
 });
 
 
-app.get('/articles-user/:userId', authMobile, async (req, resp, next) => {
+app.post('/articles-user', authMobile, async (req, resp, next) => {
     try {
-        const userId = req.params.userId;
-        if (!userId) {
+        const body = req.body;
+        if(!body || !body.userId) {
             resp.status(400).send('Bad request');
             return
         }
+        const {userId, ...options} = body
         const articles = await Article.findAll({
             where: {
                 userId
@@ -245,7 +246,8 @@ app.get('/articles-user/:userId', authMobile, async (req, resp, next) => {
                     as: 'articleImgVideo',
                     required: false
                 }
-            ]
+            ],
+            ...options
         })
         if (!articles) {
             resp.status(400).send('Articles not exists');
